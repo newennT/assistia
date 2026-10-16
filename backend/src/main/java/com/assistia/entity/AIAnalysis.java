@@ -21,12 +21,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "ai_analyses",
-        indexes = {
-                @Index(name = "idx_ai_analyses_ticket", columnList = "ticket_id")
-        }
-)
+@Table(name = "ai_analyses", indexes = {
+        @Index(name = "idx_ai_analyses_ticket", columnList = "ticket_id")
+})
 public class AIAnalysis {
 
     @Id
@@ -34,11 +31,7 @@ public class AIAnalysis {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "ticket_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_ai_analyses_ticket")
-    )
+    @JoinColumn(name = "ticket_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ai_analyses_ticket"))
     private Ticket ticket;
 
     @Lob
@@ -74,12 +67,12 @@ public class AIAnalysis {
     }
 
     public AIAnalysis(Ticket ticket,
-                      String summary,
-                      TicketCategory suggestedCategory,
-                      TicketPriority suggestedPriority,
-                      String possibleCauses,
-                      String proposedActions,
-                      BigDecimal confidenceScore) {
+            String summary,
+            TicketCategory suggestedCategory,
+            TicketPriority suggestedPriority,
+            String possibleCauses,
+            String proposedActions,
+            BigDecimal confidenceScore) {
         this.ticket = ticket;
         this.summary = summary;
         this.suggestedCategory = suggestedCategory;

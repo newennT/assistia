@@ -17,12 +17,9 @@ import org.hibernate.annotations.Nationalized;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "knowledge_documents",
-        indexes = {
-                @Index(name = "idx_kd_category", columnList = "category")
-        }
-)
+@Table(name = "knowledge_documents", indexes = {
+        @Index(name = "idx_kd_category", columnList = "category")
+})
 public class KnowledgeDocument {
 
     @Id
@@ -54,9 +51,9 @@ public class KnowledgeDocument {
     }
 
     public KnowledgeDocument(String title,
-                            String content,
-                            KnowledgeDocumentCategory category,
-                            String sourceReference) {
+            String content,
+            KnowledgeDocumentCategory category,
+            String sourceReference) {
         this.title = title;
         this.content = content;
         this.category = category;

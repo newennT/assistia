@@ -21,16 +21,13 @@ import org.hibernate.annotations.Nationalized;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "tickets",
-        indexes = {
-                @Index(name = "idx_tickets_creator", columnList = "creator_id"),
-                @Index(name = "idx_tickets_assignee", columnList = "assignee_id"),
-                @Index(name = "idx_tickets_status", columnList = "status"),
-                @Index(name = "idx_tickets_priority", columnList = "priority"),
-                @Index(name = "idx_tickets_category", columnList = "category")
-        }
-)
+@Table(name = "tickets", indexes = {
+        @Index(name = "idx_tickets_creator", columnList = "creator_id"),
+        @Index(name = "idx_tickets_assignee", columnList = "assignee_id"),
+        @Index(name = "idx_tickets_status", columnList = "status"),
+        @Index(name = "idx_tickets_priority", columnList = "priority"),
+        @Index(name = "idx_tickets_category", columnList = "category")
+})
 public class Ticket {
 
     @Id
@@ -58,18 +55,11 @@ public class Ticket {
     private TicketCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "creator_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_tickets_creator")
-    )
+    @JoinColumn(name = "creator_id", nullable = false, foreignKey = @ForeignKey(name = "fk_tickets_creator"))
     private User creator;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "assignee_id",
-            foreignKey = @ForeignKey(name = "fk_tickets_assignee")
-    )
+    @JoinColumn(name = "assignee_id", foreignKey = @ForeignKey(name = "fk_tickets_assignee"))
     private User assignee;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -82,12 +72,12 @@ public class Ticket {
     }
 
     public Ticket(String title,
-                  String description,
-                  TicketStatus status,
-                  TicketPriority priority,
-                  TicketCategory category,
-                  User creator,
-                  User assignee) {
+            String description,
+            TicketStatus status,
+            TicketPriority priority,
+            TicketCategory category,
+            User creator,
+            User assignee) {
         this.title = title;
         this.description = description;
         this.status = status;

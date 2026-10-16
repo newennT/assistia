@@ -18,13 +18,10 @@ import org.hibernate.annotations.Nationalized;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "comments",
-        indexes = {
-                @Index(name = "idx_comments_ticket", columnList = "ticket_id"),
-                @Index(name = "idx_comments_author", columnList = "author_id")
-        }
-)
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comments_ticket", columnList = "ticket_id"),
+        @Index(name = "idx_comments_author", columnList = "author_id")
+})
 public class Comment {
 
     @Id
@@ -32,19 +29,11 @@ public class Comment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "ticket_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_comments_ticket")
-    )
+    @JoinColumn(name = "ticket_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comments_ticket"))
     private Ticket ticket;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "author_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_comments_author")
-    )
+    @JoinColumn(name = "author_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comments_author"))
     private User author;
 
     @Lob

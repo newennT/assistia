@@ -28,8 +28,7 @@ class EntityModelTest {
                 TicketPriority.HIGH,
                 TicketCategory.VPN,
                 creator,
-                technician
-        );
+                technician);
 
         entityManager.persist(ticket);
         entityManager.flush();

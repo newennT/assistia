@@ -16,12 +16,9 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "attachments",
-        indexes = {
-                @Index(name = "idx_attachments_ticket", columnList = "ticket_id")
-        }
-)
+@Table(name = "attachments", indexes = {
+        @Index(name = "idx_attachments_ticket", columnList = "ticket_id")
+})
 public class Attachment {
 
     @Id
@@ -29,11 +26,7 @@ public class Attachment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "ticket_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_attachments_ticket")
-    )
+    @JoinColumn(name = "ticket_id", nullable = false, foreignKey = @ForeignKey(name = "fk_attachments_ticket"))
     private Ticket ticket;
 
     @Column(name = "file_name", nullable = false, length = 255)
