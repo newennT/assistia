@@ -52,7 +52,8 @@ class EntityModelTest {
         assertThat(managed).isNotNull();
         assertThat(managed.getTitle()).isEqualTo("VPN indisponible");
         assertThat(managed.getDescription())
-                .isEqualTo("La connexion VPN échoue après la dernière mise à jour. Éléments à vérifier : réseau, DNS et authentification.");
+                .isEqualTo(
+                        "La connexion VPN échoue après la dernière mise à jour. Éléments à vérifier : réseau, DNS et authentification.");
         assertThat(managed.getStatus()).isEqualTo(TicketStatus.OPEN);
         assertThat(managed.getPriority()).isEqualTo(TicketPriority.HIGH);
         assertThat(managed.getCategory()).isEqualTo(TicketCategory.VPN);
