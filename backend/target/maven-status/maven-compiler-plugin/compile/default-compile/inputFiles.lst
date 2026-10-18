@@ -17,3 +17,4 @@
 /home/newenn/projets/assistia/backend/src/main/java/com/assistia/repository/KnowledgeDocumentRepository.java
 /home/newenn/projets/assistia/backend/src/main/java/com/assistia/repository/TicketRepository.java
 /home/newenn/projets/assistia/backend/src/main/java/com/assistia/repository/UserRepository.java
+/home/newenn/projets/assistia/backend/src/main/java/com/assistia/service/TicketService.java
