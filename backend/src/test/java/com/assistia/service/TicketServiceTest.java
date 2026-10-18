@@ -84,29 +84,29 @@ class TicketServiceTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-        @Test
-        void updatesOnlyEditableTicketInformation() {
-                User creator = newUser("creator", UserRole.USER);
-                userRepository.saveAndFlush(creator);
-                Ticket ticket = createTicket(creator, TicketStatus.OPEN, TicketPriority.HIGH);
-                Long ticketId = ticket.getId();
-                var createdAt = ticket.getCreatedAt();
+    @Test
+    void updatesOnlyEditableTicketInformation() {
+        User creator = newUser("creator", UserRole.USER);
+        userRepository.saveAndFlush(creator);
+        Ticket ticket = createTicket(creator, TicketStatus.OPEN, TicketPriority.HIGH);
+        Long ticketId = ticket.getId();
+        var createdAt = ticket.getCreatedAt();
 
-                Ticket updated = ticketService.updateTicket(
-                                ticketId,
-                                "Nouveau titre",
-                                "Nouvelle description",
-                                TicketCategory.NETWORK);
+        Ticket updated = ticketService.updateTicket(
+                ticketId,
+                "Nouveau titre",
+                "Nouvelle description",
+                TicketCategory.NETWORK);
 
-                assertThat(updated.getId()).isEqualTo(ticketId);
-                assertThat(updated.getCreatedAt()).isEqualTo(createdAt);
-                assertThat(updated.getTitle()).isEqualTo("Nouveau titre");
-                assertThat(updated.getDescription()).isEqualTo("Nouvelle description");
-                assertThat(updated.getCategory()).isEqualTo(TicketCategory.NETWORK);
-                assertThat(updated.getStatus()).isEqualTo(TicketStatus.OPEN);
-                assertThat(updated.getPriority()).isEqualTo(TicketPriority.HIGH);
-                assertThat(ticketService.getAllTickets()).extracting(Ticket::getId).contains(ticketId);
-        }
+        assertThat(updated.getId()).isEqualTo(ticketId);
+        assertThat(updated.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(updated.getTitle()).isEqualTo("Nouveau titre");
+        assertThat(updated.getDescription()).isEqualTo("Nouvelle description");
+        assertThat(updated.getCategory()).isEqualTo(TicketCategory.NETWORK);
+        assertThat(updated.getStatus()).isEqualTo(TicketStatus.OPEN);
+        assertThat(updated.getPriority()).isEqualTo(TicketPriority.HIGH);
+        assertThat(ticketService.getAllTickets()).extracting(Ticket::getId).contains(ticketId);
+    }
 
     @Test
     void changesStatusAndPriorityAndSupportsFiltering() {
