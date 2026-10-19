@@ -8,8 +8,10 @@ import com.assistia.dto.TicketResponse;
 import com.assistia.dto.UpdateTicketRequest;
 import com.assistia.entity.TicketPriority;
 import com.assistia.entity.TicketStatus;
+import com.assistia.security.AssistiaPrincipal;
 import com.assistia.service.TicketService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -36,14 +38,23 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<TicketResponse> createTicket(@Valid @RequestBody CreateTicketRequest request) {
+    public ResponseEntity<TicketResponse> createTicket(
+            @Valid @RequestBody CreateTicketRequest request,
+            Authentication authentication) {
+        AssistiaPrincipal principal = (AssistiaPrincipal) authentication.getPrincipal();
+        TicketStatus status = principal.isRegularUser() || request.status() == null
+                ? TicketStatus.OPEN
+                : request.status();
+        TicketPriority priority = principal.isRegularUser() || request.priority() == null
+                ? TicketPriority.MEDIUM
+                : request.priority();
         TicketResponse response = TicketResponse.from(ticketService.createTicket(
                 request.title(),
                 request.description(),
-                request.status(),
-                request.priority(),
+                status,
+                priority,
                 request.category(),
-                request.creatorId()));
+                principal.id()));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(response.id())
@@ -54,7 +65,14 @@ public class TicketController {
     @GetMapping
     public List<TicketResponse> getTickets(
             @RequestParam(required = false) TicketStatus status,
-            @RequestParam(required = false) TicketPriority priority) {
+            @RequestParam(required = false) TicketPriority priority,
+            Authentication authentication) {
+        AssistiaPrincipal principal = (AssistiaPrincipal) authentication.getPrincipal();
+        if (principal.isRegularUser()) {
+            return ticketService.findByCreator(principal.id(), status, priority).stream()
+                    .map(TicketResponse::from)
+                    .toList();
+        }
         if (status != null && priority != null) {
             return ticketService.findByStatusAndPriority(status, priority).stream()
                     .map(TicketResponse::from)
@@ -70,14 +88,23 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
-    public TicketResponse getTicket(@PathVariable Long id) {
-        return TicketResponse.from(ticketService.getTicketById(id));
+    public TicketResponse getTicket(@PathVariable Long id, Authentication authentication) {
+        AssistiaPrincipal principal = (AssistiaPrincipal) authentication.getPrincipal();
+        return TicketResponse.from(principal.isRegularUser()
+                ? ticketService.getTicketByIdForCreator(id, principal.id())
+                : ticketService.getTicketById(id));
     }
 
     @PutMapping("/{id}")
-    public TicketResponse updateTicket(@PathVariable Long id, @Valid @RequestBody UpdateTicketRequest request) {
-        return TicketResponse.from(ticketService.updateTicket(
-                id, request.title(), request.description(), request.category()));
+    public TicketResponse updateTicket(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateTicketRequest request,
+            Authentication authentication) {
+        AssistiaPrincipal principal = (AssistiaPrincipal) authentication.getPrincipal();
+        return TicketResponse.from(principal.isRegularUser()
+                ? ticketService.updateTicketForCreator(
+                        id, principal.id(), request.title(), request.description(), request.category())
+                : ticketService.updateTicket(id, request.title(), request.description(), request.category()));
     }
 
     @PatchMapping("/{id}/status")

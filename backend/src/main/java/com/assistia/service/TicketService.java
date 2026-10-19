@@ -9,6 +9,7 @@ import com.assistia.entity.UserRole;
 import com.assistia.repository.TicketRepository;
 import com.assistia.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,16 +53,57 @@ public class TicketService {
         return ticketRepository.findAll();
     }
 
+    public Ticket getTicketByIdForCreator(Long ticketId, Long creatorId) {
+        Ticket ticket = findTicket(ticketId);
+        if (!ticket.getCreator().getId().equals(creatorId)) {
+            throw new EntityNotFoundException("Ticket introuvable : " + ticketId);
+        }
+        return ticket;
+    }
+
+    public List<Ticket> findByCreator(Long creatorId, TicketStatus status, TicketPriority priority) {
+        requireId(creatorId, "créateur");
+        if (status != null && priority != null) {
+            return ticketRepository.findByCreator_IdAndStatusAndPriority(creatorId, status, priority);
+        }
+        if (status != null) {
+            return ticketRepository.findByCreator_IdAndStatus(creatorId, status);
+        }
+        if (priority != null) {
+            return ticketRepository.findByCreator_IdAndPriority(creatorId, priority);
+        }
+        return ticketRepository.findByCreator_Id(creatorId);
+    }
+
     @Transactional
     public Ticket updateTicket(Long ticketId, String title, String description, TicketCategory category) {
         requireValue(title, "Le titre est obligatoire.");
         requireValue(description, "La description est obligatoire.");
-        requireValue(category, "La catégorie est obligatoire.");
 
         Ticket ticket = findTicket(ticketId);
         ticket.setTitle(title);
         ticket.setDescription(description);
-        ticket.setCategory(category);
+        if (category != null) {
+            ticket.setCategory(category);
+        }
+        return ticketRepository.save(ticket);
+    }
+
+    @Transactional
+    public Ticket updateTicketForCreator(
+            Long ticketId,
+            Long creatorId,
+            String title,
+            String description,
+            TicketCategory category) {
+        Ticket ticket = getTicketByIdForCreator(ticketId, creatorId);
+        if (category != null && !ticket.getCategory().equals(category)) {
+            throw new AccessDeniedException("La catégorie ne peut être modifiée que par un technicien.");
+        }
+        requireValue(title, "Le titre est obligatoire.");
+        requireValue(description, "La description est obligatoire.");
+        ticket.setTitle(title);
+        ticket.setDescription(description);
         return ticketRepository.save(ticket);
     }
 

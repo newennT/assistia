@@ -5,14 +5,19 @@ import com.assistia.entity.TicketCategory;
 import com.assistia.entity.TicketPriority;
 import com.assistia.entity.TicketStatus;
 import com.assistia.entity.User;
+import com.assistia.entity.UserRole;
+import com.assistia.security.AssistiaPrincipal;
 import com.assistia.service.TicketService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TicketController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(ApiExceptionHandler.class)
 class TicketControllerTest {
 
@@ -36,6 +42,17 @@ class TicketControllerTest {
 
     @MockitoBean
     private TicketService ticketService;
+
+    private MockHttpServletRequestBuilder asTechnician(MockHttpServletRequestBuilder request) {
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(12L);
+        when(user.getEmail()).thenReturn("tech@assistia.local");
+        when(user.getPasswordHash()).thenReturn("unused-in-controller-test");
+        when(user.getRole()).thenReturn(UserRole.TECHNICIAN);
+        AssistiaPrincipal principal = new AssistiaPrincipal(user);
+        return request.principal(UsernamePasswordAuthenticationToken.authenticated(
+                principal, null, principal.getAuthorities()));
+    }
 
     @Test
     void createsTicketAndReturnsDtoWithCreatedLocation() throws Exception {
@@ -48,7 +65,7 @@ class TicketControllerTest {
                 TicketCategory.VPN,
                 12L)).thenReturn(created);
 
-        mockMvc.perform(post("/api/tickets")
+        mockMvc.perform(asTechnician(post("/api/tickets")
                         .contentType(APPLICATION_JSON)
                         .content("""
                                 {
@@ -59,7 +76,7 @@ class TicketControllerTest {
                                   "category": "VPN",
                                   "creatorId": 12
                                 }
-                                """))
+                                """)))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/tickets/42"))
                 .andExpect(jsonPath("$.id").value(42))
@@ -74,7 +91,7 @@ class TicketControllerTest {
         Ticket retrieved = ticket(TicketStatus.OPEN, TicketPriority.HIGH, null);
         when(ticketService.getTicketById(42L)).thenReturn(retrieved);
 
-        mockMvc.perform(get("/api/tickets/42"))
+        mockMvc.perform(asTechnician(get("/api/tickets/42")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(42))
                 .andExpect(jsonPath("$.title").value("Ticket de test"))
@@ -88,7 +105,7 @@ class TicketControllerTest {
     void returnsConsistentNotFoundErrorForUnknownTicket() throws Exception {
         when(ticketService.getTicketById(404L)).thenThrow(new EntityNotFoundException("Ticket introuvable : 404"));
 
-        mockMvc.perform(get("/api/tickets/404"))
+        mockMvc.perform(asTechnician(get("/api/tickets/404")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"))
@@ -98,7 +115,7 @@ class TicketControllerTest {
 
     @Test
     void rejectsInvalidRequestAndUnknownEnum() throws Exception {
-        mockMvc.perform(post("/api/tickets")
+        mockMvc.perform(asTechnician(post("/api/tickets")
                         .contentType(APPLICATION_JSON)
                         .content("""
                                 {
@@ -109,13 +126,13 @@ class TicketControllerTest {
                                   "category": "VPN",
                                   "creatorId": 12
                                 }
-                                """))
+                                """)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.path").value("/api/tickets"));
 
-        mockMvc.perform(post("/api/tickets")
+        mockMvc.perform(asTechnician(post("/api/tickets")
                         .contentType(APPLICATION_JSON)
                         .content("""
                                 {
@@ -126,7 +143,7 @@ class TicketControllerTest {
                                   "category": "VPN",
                                   "creatorId": 12
                                 }
-                                """))
+                                """)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(
                         "La requête contient des données invalides ou une valeur d'enum inconnue."));
@@ -138,9 +155,9 @@ class TicketControllerTest {
         when(ticketService.changeStatus(42L, TicketStatus.IN_PROGRESS))
                 .thenReturn(updated);
 
-        mockMvc.perform(patch("/api/tickets/42/status")
+        mockMvc.perform(asTechnician(patch("/api/tickets/42/status")
                         .contentType(APPLICATION_JSON)
-                        .content("{\"status\":\"IN_PROGRESS\"}"))
+                        .content("{\"status\":\"IN_PROGRESS\"}")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
     }
@@ -151,9 +168,9 @@ class TicketControllerTest {
         when(ticketService.changePriority(42L, TicketPriority.CRITICAL))
                 .thenReturn(updated);
 
-        mockMvc.perform(patch("/api/tickets/42/priority")
+        mockMvc.perform(asTechnician(patch("/api/tickets/42/priority")
                         .contentType(APPLICATION_JSON)
-                        .content("{\"priority\":\"CRITICAL\"}"))
+                        .content("{\"priority\":\"CRITICAL\"}")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.priority").value("CRITICAL"));
     }
@@ -166,9 +183,9 @@ class TicketControllerTest {
         when(ticketService.assignTechnician(42L, 55L))
                 .thenReturn(updated);
 
-        mockMvc.perform(patch("/api/tickets/42/assignment")
+        mockMvc.perform(asTechnician(patch("/api/tickets/42/assignment")
                         .contentType(APPLICATION_JSON)
-                        .content("{\"technicianId\":55}"))
+                        .content("{\"technicianId\":55}")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assigneeId").value(55));
     }
@@ -179,7 +196,8 @@ class TicketControllerTest {
         when(ticketService.findByStatusAndPriority(TicketStatus.OPEN, TicketPriority.HIGH))
                 .thenReturn(List.of(filtered));
 
-        mockMvc.perform(get("/api/tickets").param("status", "OPEN").param("priority", "HIGH"))
+        mockMvc.perform(asTechnician(
+                get("/api/tickets").param("status", "OPEN").param("priority", "HIGH")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(42));
     }
