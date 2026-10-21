@@ -15,15 +15,18 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   container_name: assistia-frontend
-  #   ports:
-  #     - "5173:5173"
-  #   depends_on:
-  #     - backend
-  #   restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend
+    container_name: assistia-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
