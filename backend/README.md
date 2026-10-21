@@ -39,8 +39,13 @@ Après le démarrage de l'application et l'application des migrations, lancer le
 interactif :
 
 ```sh
+docker compose up -d --build backend
 docker compose exec -it backend java -jar /app/app.jar --assistia.bootstrap-admin
 ```
+
+La première commande reconstruit et recrée le conteneur backend avec le correctif courant; elle ne supprime pas les
+données SQL Server. La seconde lance le CLI interactif dans ce conteneur. Saisir le mot de passe aux invites : ne pas
+le passer en argument ni l'inscrire dans une variable de commande.
 
 En exécution locale, construire le JAR puis lancer la même option en ayant configuré les variables de connexion
 SQL Server :

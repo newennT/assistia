@@ -1,54 +1,30 @@
-# frontend
+# AssistIA — frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Interface Vue 3 + TypeScript d’AssistIA. L’authentification utilise les sessions et cookies du backend Spring Boot. Aucun secret ou jeton n’est stocké dans le stockage web.
 
-## Recommended IDE Setup
+## Démarrage local
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Prérequis : Node.js 22.18 ou supérieur (voir `package.json`).
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
+cp .env.example .env.local
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+`VITE_API_URL` indique l’URL du backend vue depuis le navigateur. Sa valeur par défaut est `http://localhost:8080`. Le backend autorise par défaut l’origine frontend `http://localhost:5173` et les cookies cross-origin.
+
+## Vérifications
 
 ```sh
+npm run type-check
+npm run lint
+npm run test:unit -- --run
 npm run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## IDE
 
-```sh
-npm run test:unit
-```
+[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (désactivez Vetur).
 
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+Vue Language Tools / Volar fournit le support TypeScript des fichiers `.vue` dans l’éditeur. Voir la [configuration Vite](https://vite.dev/config/).
