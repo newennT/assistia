@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { apiRequest, getCsrfToken, resetCsrfToken } from '../api'
+import { apiRequest, ApiError, getCsrfToken, isApiErrorStatus, resetCsrfToken } from '../api'
 
 describe('API client', () => {
   afterEach(() => {
@@ -27,6 +27,12 @@ describe('API client', () => {
     await expect(apiRequest('/api/private')).rejects.toMatchObject({
       name: 'ApiError', status: 403, message: 'Accès refusé.',
     })
+  })
+
+  it('recognizes expired sessions from unauthorized API errors', () => {
+    expect(isApiErrorStatus(new ApiError('Authentification requise.', 401), 401)).toBe(true)
+    expect(isApiErrorStatus({ status: 401 }, 401)).toBe(true)
+    expect(isApiErrorStatus(new ApiError('Accès refusé.', 403), 401)).toBe(false)
   })
 
   it('sends the CSRF token from the API response for state-changing requests', async () => {

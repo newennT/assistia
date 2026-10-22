@@ -34,6 +34,7 @@ async function submitLogin() {
     <section class="login-card">
       <h1>Se connecter</h1>
       <p class="login-intro">Connectez-vous à votre espace de support.</p>
+      <p v-if="route.query.expired" class="form-notice" role="status">Votre session a expiré. Reconnectez-vous pour continuer.</p>
       <p v-if="route.query.unavailable" class="form-error" role="alert">Le serveur AssistIA ne répond pas. Vérifiez qu’il est démarré puis réessayez.</p>
       <form @submit.prevent="submitLogin">
         <label for="email">Adresse e-mail</label>

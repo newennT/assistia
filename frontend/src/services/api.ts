@@ -13,6 +13,11 @@ export class ApiError extends Error {
   }
 }
 
+export function isApiErrorStatus(error: unknown, status: number): boolean {
+  if (error instanceof ApiError) return error.status === status
+  return typeof error === 'object' && error !== null && 'status' in error && error.status === status
+}
+
 let csrfToken: CsrfTokenResponse | null = null
 
 function readCookie(name: string): string | null {

@@ -12,9 +12,9 @@ const router = createRouter({
       path: '/', component: AppShell, meta: { requiresAuth: true },
       children: [
         { path: '', name: 'home', component: () => import('@/views/HomeView.vue') },
-        { path: 'tickets', name: 'tickets', component: PlaceholderView, props: { title: 'Tickets', description: 'La gestion des tickets sera disponible dans la prochaine étape.' } },
+        { path: 'tickets', name: 'tickets', component: () => import('@/views/TicketsView.vue') },
         { path: 'tickets/new', name: 'ticket-new', component: PlaceholderView, props: { title: 'Nouveau ticket', description: 'Le formulaire de création sera ajouté dans la prochaine étape.' } },
-        { path: 'tickets/:id', name: 'ticket-detail', component: PlaceholderView, props: { title: 'Détail du ticket', description: 'La fiche détaillée sera ajoutée dans une prochaine étape.' } },
+        { path: 'tickets/:id', name: 'ticket-detail', component: () => import('@/views/TicketDetailView.vue') },
         { path: 'admin', name: 'admin', component: PlaceholderView, props: { title: 'Administration', description: 'Les outils d’administration ne sont pas encore développés.' }, meta: { roles: ['ADMIN'] } },
       ],
     },
