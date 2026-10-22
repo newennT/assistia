@@ -32,8 +32,7 @@ async function submitLogin() {
   <main class="login-page">
     <div class="login-brand"><span class="brand-mark">A</span><span>Assist<span class="brand-accent">IA</span></span></div>
     <section class="login-card">
-      <div class="eyebrow">PORTAIL SUPPORT INFORMATIQUE</div>
-      <h1>Bon retour parmi nous</h1>
+      <h1>Se connecter</h1>
       <p class="login-intro">Connectez-vous à votre espace de support.</p>
       <p v-if="route.query.unavailable" class="form-error" role="alert">Le serveur AssistIA ne répond pas. Vérifiez qu’il est démarré puis réessayez.</p>
       <form @submit.prevent="submitLogin">
@@ -46,8 +45,7 @@ async function submitLogin() {
           <span v-if="submitting" class="spinner" aria-hidden="true"></span>{{ submitting ? 'Connexion…' : 'Se connecter' }}
         </button>
       </form>
-      <div class="login-security"><span>▣</span> Connexion sécurisée par votre session d’entreprise</div>
     </section>
-    <div class="login-footer">AssistIA · Support informatique interne</div>
+    <div class="login-footer">AssistIA · Portail Support informatique</div>
   </main>
 </template>
