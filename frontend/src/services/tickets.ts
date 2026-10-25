@@ -1,5 +1,11 @@
 import { apiRequest, ApiError } from './api'
-import type { Ticket, TicketFilters } from '@/types/ticket'
+import type { Ticket, TicketCategory, TicketFilters } from '@/types/ticket'
+
+export interface CreateTicketInput {
+  title: string
+  description: string
+  category: TicketCategory
+}
 
 const statuses = ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED']
 const priorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
@@ -38,5 +44,17 @@ export async function getTickets(filters: TicketFilters = {}): Promise<Ticket[]>
 export async function getTicket(id: number): Promise<Ticket> {
   if (!Number.isInteger(id) || id <= 0) throw new ApiError('Identifiant de ticket invalide.', 400)
   const data: unknown = await apiRequest(`/api/tickets/${id}`)
+  return validateTicket(data)
+}
+
+export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
+  const data: unknown = await apiRequest('/api/tickets', {
+    method: 'POST',
+    body: {
+      title: input.title,
+      description: input.description,
+      category: input.category,
+    },
+  })
   return validateTicket(data)
 }

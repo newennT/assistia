@@ -13,7 +13,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'home', component: () => import('@/views/HomeView.vue') },
         { path: 'tickets', name: 'tickets', component: () => import('@/views/TicketsView.vue') },
-        { path: 'tickets/new', name: 'ticket-new', component: PlaceholderView, props: { title: 'Nouveau ticket', description: 'Le formulaire de création sera ajouté dans la prochaine étape.' } },
+        { path: 'tickets/new', name: 'ticket-new', component: () => import('@/views/TicketCreateView.vue') },
         { path: 'tickets/:id', name: 'ticket-detail', component: () => import('@/views/TicketDetailView.vue') },
         { path: 'admin', name: 'admin', component: PlaceholderView, props: { title: 'Administration', description: 'Les outils d’administration ne sont pas encore développés.' }, meta: { roles: ['ADMIN'] } },
       ],

@@ -195,6 +195,26 @@ h1, h2, h3, p { margin-top: 0; }
 .description-section h3 { margin: 0 0 10px; font: 700 13px 'Manrope', sans-serif; }
 .description-section p { margin: 0; color: #596b80; font-size: 12px; line-height: 1.7; white-space: pre-wrap; }
 .form-notice { margin: 0 0 15px; padding: 10px 12px; border: 1px solid #dce7f2; border-radius: 6px; background: #f5f8fc; color: #476d96; font-size: 11px; }
+.ticket-create-page { display: grid; gap: 18px; }
+.ticket-form { display: grid; gap: 21px; padding: 25px; }
+.form-section-heading { padding-bottom: 17px; border-bottom: 1px solid var(--line); }
+.form-section-heading h3 { margin: 0 0 5px; font: 700 14px 'Manrope', sans-serif; }
+.form-section-heading p, .form-field > small, .field-help-row { margin: 0; color: #8794a5; font-size: 10px; }
+.form-field { display: grid; gap: 7px; }
+.form-field label { color: #43546a; font-size: 11px; font-weight: 700; }
+.form-field label span { color: #b44444; }
+.form-field input, .form-field select, .form-field textarea { width: 100%; border: 1px solid #dfe5ec; border-radius: 6px; outline: none; background: #fff; color: var(--ink); font-size: 12px; }
+.form-field input, .form-field select { height: 41px; padding: 0 11px; }
+.form-field textarea { min-height: 130px; padding: 11px; line-height: 1.55; resize: vertical; }
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: #6689b0; box-shadow: 0 0 0 3px #eaf1f8; }
+.form-field :disabled { cursor: wait; background: #f7f9fb; }
+.form-field [aria-invalid='true'] { border-color: #b44444; }
+.form-field input::placeholder, .form-field textarea::placeholder { color: #a7b1bd; }
+.field-help-row { display: flex; justify-content: space-between; gap: 10px; }
+.field-error { margin: 0; color: #b44444; font-size: 10px; }
+.submit-error { margin: -8px 0 0; }
+.form-actions { display: flex; justify-content: end; gap: 9px; padding-top: 17px; border-top: 1px solid var(--line); }
+.cancel-button { display: inline-flex; align-items: center; justify-content: center; min-height: 43px; padding: 7px 14px; }
 
 @media (max-width: 900px) {
   .dashboard-columns { grid-template-columns: 1fr; }
@@ -227,4 +247,7 @@ h1, h2, h3, p { margin-top: 0; }
   .detail-heading h2 { font-size: 19px; }
   .ticket-detail-card { padding: 19px; }
   .detail-meta { gap: 18px 12px; }
+  .ticket-form { gap: 18px; padding: 18px; }
+  .form-actions { flex-direction: column-reverse; }
+  .form-actions > * { width: 100%; }
 }

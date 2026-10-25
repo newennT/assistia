@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../api'
-import { getTicket, getTickets } from '../tickets'
+import { createTicket, getTicket, getTickets } from '../tickets'
 
 const { apiRequest } = vi.hoisted(() => ({ apiRequest: vi.fn<(path: string, options?: unknown) => Promise<unknown>>() }))
 vi.mock('../api', async (importOriginal) => ({
@@ -48,5 +48,28 @@ describe('ticket service', () => {
     await expect(getTicket(7)).resolves.toEqual(ticket)
     expect(apiRequest).toHaveBeenCalledWith('/api/tickets/7')
     await expect(getTicket(0)).rejects.toBeInstanceOf(ApiError)
+  })
+
+  it('creates a ticket with only its accepted editable fields and validates the response', async () => {
+    apiRequest.mockResolvedValue(ticket)
+    await expect(createTicket({
+      title: 'Accès VPN indisponible',
+      description: 'Connexion impossible',
+      category: 'VPN',
+    })).resolves.toEqual(ticket)
+    expect(apiRequest).toHaveBeenCalledWith('/api/tickets', {
+      method: 'POST',
+      body: {
+        title: 'Accès VPN indisponible',
+        description: 'Connexion impossible',
+        category: 'VPN',
+      },
+    })
+  })
+
+  it('rejects a malformed created ticket response', async () => {
+    apiRequest.mockResolvedValue({ id: 8, title: 'Incomplete' })
+    await expect(createTicket({ title: 'Titre', description: 'Description', category: 'GENERAL' }))
+      .rejects.toMatchObject({ name: 'ApiError', status: 502 })
   })
 })
