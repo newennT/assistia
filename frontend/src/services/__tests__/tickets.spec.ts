@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../api'
-import { createTicket, getTicket, getTickets } from '../tickets'
+import { changeTicketPriority, changeTicketStatus, createTicket, getTicket, getTickets, updateTicket } from '../tickets'
 
 const { apiRequest } = vi.hoisted(() => ({ apiRequest: vi.fn<(path: string, options?: unknown) => Promise<unknown>>() }))
 vi.mock('../api', async (importOriginal) => ({
@@ -71,5 +71,21 @@ describe('ticket service', () => {
     apiRequest.mockResolvedValue({ id: 8, title: 'Incomplete' })
     await expect(createTicket({ title: 'Titre', description: 'Description', category: 'GENERAL' }))
       .rejects.toMatchObject({ name: 'ApiError', status: 502 })
+  })
+
+  it('updates ticket information through the existing PUT endpoint', async () => {
+    apiRequest.mockResolvedValue(ticket)
+    await expect(updateTicket(7, { title: 'Titre', description: 'Détail', category: 'VPN' })).resolves.toEqual(ticket)
+    expect(apiRequest).toHaveBeenCalledWith('/api/tickets/7', {
+      method: 'PUT', body: { title: 'Titre', description: 'Détail', category: 'VPN' },
+    })
+  })
+
+  it('changes status and priority using the backend enum values', async () => {
+    apiRequest.mockResolvedValue(ticket)
+    await changeTicketStatus(7, 'IN_PROGRESS')
+    await changeTicketPriority(7, 'CRITICAL')
+    expect(apiRequest).toHaveBeenNthCalledWith(1, '/api/tickets/7/status', { method: 'PATCH', body: { status: 'IN_PROGRESS' } })
+    expect(apiRequest).toHaveBeenNthCalledWith(2, '/api/tickets/7/priority', { method: 'PATCH', body: { priority: 'CRITICAL' } })
   })
 })

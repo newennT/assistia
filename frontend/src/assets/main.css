@@ -194,6 +194,11 @@ h1, h2, h3, p { margin-top: 0; }
 .description-section { padding-top: 22px; }
 .description-section h3 { margin: 0 0 10px; font: 700 13px 'Manrope', sans-serif; }
 .description-section p { margin: 0; color: #596b80; font-size: 12px; line-height: 1.7; white-space: pre-wrap; }
+.ticket-edit-form { display: grid; gap: 18px; padding-top: 20px; }
+.ticket-edit-form .form-actions { padding-bottom: 0; }
+.detail-meta .form-field { gap: 6px; }
+.detail-meta .form-field label { color: #8794a5; font-size: 10px; }
+.detail-meta .form-field select { min-width: 0; height: 34px; padding: 0 8px; border: 1px solid #dfe5ec; border-radius: 6px; background: #fff; color: #34465d; font-size: 11px; }
 .form-notice { margin: 0 0 15px; padding: 10px 12px; border: 1px solid #dce7f2; border-radius: 6px; background: #f5f8fc; color: #476d96; font-size: 11px; }
 .ticket-create-page { display: grid; gap: 18px; }
 .ticket-form { display: grid; gap: 21px; padding: 25px; }

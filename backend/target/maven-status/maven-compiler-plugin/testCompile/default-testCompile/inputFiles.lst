@@ -1,3 +1,7 @@
+/home/newenn/projets/assistia/backend/src/test/java/com/assistia/controller/TicketControllerTest.java
 /home/newenn/projets/assistia/backend/src/test/java/com/assistia/entity/EntityModelTest.java
 /home/newenn/projets/assistia/backend/src/test/java/com/assistia/entity/TicketRepositorySqlServerTest.java
+/home/newenn/projets/assistia/backend/src/test/java/com/assistia/security/AuthAndTicketSecurityIntegrationTest.java
+/home/newenn/projets/assistia/backend/src/test/java/com/assistia/security/BootstrapCliContextTest.java
+/home/newenn/projets/assistia/backend/src/test/java/com/assistia/service/AdminBootstrapServiceTest.java
 /home/newenn/projets/assistia/backend/src/test/java/com/assistia/service/TicketServiceTest.java

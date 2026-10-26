@@ -7,6 +7,8 @@ export interface CreateTicketInput {
   category: TicketCategory
 }
 
+export type UpdateTicketInput = CreateTicketInput
+
 const statuses = ['OPEN', 'IN_PROGRESS', 'PENDING', 'RESOLVED', 'CLOSED']
 const priorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
 const categories = ['WINDOWS', 'LINUX', 'DNS', 'DHCP', 'VPN', 'NETWORK', 'PRINTER', 'USER_ACCOUNT', 'PERMISSIONS', 'M365', 'BUSINESS_APP', 'GENERAL', 'OTHER']
@@ -56,5 +58,26 @@ export async function createTicket(input: CreateTicketInput): Promise<Ticket> {
       category: input.category,
     },
   })
+  return validateTicket(data)
+}
+
+export async function updateTicket(id: number, input: UpdateTicketInput): Promise<Ticket> {
+  if (!Number.isInteger(id) || id <= 0) throw new ApiError('Identifiant de ticket invalide.', 400)
+  const data: unknown = await apiRequest(`/api/tickets/${id}`, {
+    method: 'PUT',
+    body: { title: input.title, description: input.description, category: input.category },
+  })
+  return validateTicket(data)
+}
+
+export async function changeTicketStatus(id: number, status: Ticket['status']): Promise<Ticket> {
+  if (!Number.isInteger(id) || id <= 0) throw new ApiError('Identifiant de ticket invalide.', 400)
+  const data: unknown = await apiRequest(`/api/tickets/${id}/status`, { method: 'PATCH', body: { status } })
+  return validateTicket(data)
+}
+
+export async function changeTicketPriority(id: number, priority: Ticket['priority']): Promise<Ticket> {
+  if (!Number.isInteger(id) || id <= 0) throw new ApiError('Identifiant de ticket invalide.', 400)
+  const data: unknown = await apiRequest(`/api/tickets/${id}/priority`, { method: 'PATCH', body: { priority } })
   return validateTicket(data)
 }
