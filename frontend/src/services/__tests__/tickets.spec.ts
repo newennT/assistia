@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../api'
-import { changeTicketPriority, changeTicketStatus, createTicket, getTicket, getTickets, updateTicket } from '../tickets'
+import { changeTicketPriority, changeTicketStatus, createTicket, getTicket, getTicketAnalyses, getTickets, requestTicketAnalysis, updateTicket } from '../tickets'
 
 const { apiRequest } = vi.hoisted(() => ({ apiRequest: vi.fn<(path: string, options?: unknown) => Promise<unknown>>() }))
 vi.mock('../api', async (importOriginal) => ({
@@ -19,6 +19,12 @@ const ticket = {
   assigneeId: 4,
   createdAt: '2026-10-20T09:00:00',
   updatedAt: '2026-10-21T10:30:00',
+}
+
+const analysis = {
+  id: 5, ticketId: 7, summary: 'Incident sur VPN.', suggestedCategory: 'VPN', suggestedPriority: 'HIGH',
+  possibleCauses: ['DNS'], suggestedActions: ['Tester la résolution DNS'], confidence: 0.72,
+  modelUsed: 'gemini-3.8-flash', createdAt: '2026-10-26T12:00:00',
 }
 
 describe('ticket service', () => {
@@ -87,5 +93,20 @@ describe('ticket service', () => {
     await changeTicketPriority(7, 'CRITICAL')
     expect(apiRequest).toHaveBeenNthCalledWith(1, '/api/tickets/7/status', { method: 'PATCH', body: { status: 'IN_PROGRESS' } })
     expect(apiRequest).toHaveBeenNthCalledWith(2, '/api/tickets/7/priority', { method: 'PATCH', body: { priority: 'CRITICAL' } })
+  })
+
+  it('requests an analysis and loads its stored history', async () => {
+    apiRequest.mockResolvedValueOnce(analysis).mockResolvedValueOnce([analysis])
+    await expect(requestTicketAnalysis(7)).resolves.toEqual(analysis)
+    await expect(getTicketAnalyses(7)).resolves.toEqual([analysis])
+    expect(apiRequest).toHaveBeenNthCalledWith(1, '/api/tickets/7/analysis', { method: 'POST' })
+    expect(apiRequest).toHaveBeenNthCalledWith(2, '/api/tickets/7/analysis')
+  })
+
+  it('rejects invalid analysis values and malformed histories', async () => {
+    apiRequest.mockResolvedValueOnce({ ...analysis, suggestedPriority: 'URGENT' })
+    await expect(requestTicketAnalysis(7)).rejects.toMatchObject({ status: 502 })
+    apiRequest.mockResolvedValueOnce([analysis, { ...analysis, confidence: 2 }])
+    await expect(getTicketAnalyses(7)).rejects.toMatchObject({ status: 502 })
   })
 })

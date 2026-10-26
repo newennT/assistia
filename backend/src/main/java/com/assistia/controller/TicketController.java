@@ -5,11 +5,13 @@ import com.assistia.dto.ChangeTicketPriorityRequest;
 import com.assistia.dto.ChangeTicketStatusRequest;
 import com.assistia.dto.CreateTicketRequest;
 import com.assistia.dto.TicketResponse;
+import com.assistia.dto.TicketAnalysisResponse;
 import com.assistia.dto.UpdateTicketRequest;
 import com.assistia.entity.TicketPriority;
 import com.assistia.entity.TicketStatus;
 import com.assistia.security.AssistiaPrincipal;
 import com.assistia.service.TicketService;
+import com.assistia.service.TicketAnalysisService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +34,11 @@ import java.util.List;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final TicketAnalysisService ticketAnalysisService;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService, TicketAnalysisService ticketAnalysisService) {
         this.ticketService = ticketService;
+        this.ticketAnalysisService = ticketAnalysisService;
     }
 
     @PostMapping
@@ -126,5 +130,17 @@ public class TicketController {
             @PathVariable Long id,
             @Valid @RequestBody AssignTicketRequest request) {
         return TicketResponse.from(ticketService.assignTechnician(id, request.technicianId()));
+    }
+
+    @PostMapping("/{id}/analysis")
+    public TicketAnalysisResponse analyzeTicket(@PathVariable Long id, Authentication authentication) {
+        AssistiaPrincipal principal = (AssistiaPrincipal) authentication.getPrincipal();
+        return ticketAnalysisService.analyze(id, principal.id(), principal.role());
+    }
+
+    @GetMapping("/{id}/analysis")
+    public List<TicketAnalysisResponse> getTicketAnalyses(@PathVariable Long id, Authentication authentication) {
+        AssistiaPrincipal principal = (AssistiaPrincipal) authentication.getPrincipal();
+        return ticketAnalysisService.getHistory(id, principal.id(), principal.role());
     }
 }

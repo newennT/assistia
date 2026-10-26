@@ -3,8 +3,8 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isApiErrorStatus } from '@/services/api'
 import { clearSession, authState } from '@/services/auth'
-import { changeTicketPriority, changeTicketStatus, getTicket, updateTicket } from '@/services/tickets'
-import type { Ticket, TicketCategory, TicketPriority, TicketStatus } from '@/types/ticket'
+import { changeTicketPriority, changeTicketStatus, getTicket, getTicketAnalyses, requestTicketAnalysis, updateTicket } from '@/services/tickets'
+import type { Ticket, TicketAnalysis, TicketCategory, TicketPriority, TicketStatus } from '@/types/ticket'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +16,10 @@ const saving = ref(false)
 const changing = ref(false)
 const requestError = ref('')
 const fieldError = ref('')
+const analyses = ref<TicketAnalysis[]>([])
+const analysesLoading = ref(false)
+const analyzing = ref(false)
+const analysisError = ref('')
 const form = reactive({ title: '', description: '', category: '' as TicketCategory | '' })
 const isStaff = computed(() => authState.user?.role === 'TECHNICIAN' || authState.user?.role === 'ADMIN')
 const canEditTicket = computed(() => isStaff.value || authState.user?.id === ticket.value?.creatorId)
@@ -52,10 +56,13 @@ async function loadTicket() {
   loading.value = true
   error.value = ''
   ticket.value = null
+  analyses.value = []
+  analysisError.value = ''
   const id = Number(route.params.id)
   try {
     ticket.value = await getTicket(id)
     copyTicketToForm(ticket.value)
+    void loadAnalyses(id)
   } catch (cause) {
     if (isApiErrorStatus(cause, 401)) {
       clearSession()
@@ -68,6 +75,43 @@ async function loadTicket() {
         : cause instanceof Error ? cause.message : 'Impossible de charger ce ticket. Réessayez.'
   } finally {
     loading.value = false
+  }
+}
+
+async function loadAnalyses(ticketId: number) {
+  analysesLoading.value = true
+  analysisError.value = ''
+  try {
+    const result = await getTicketAnalyses(ticketId)
+    if (Number(route.params.id) === ticketId) analyses.value = result
+  } catch (cause) {
+    if (isApiErrorStatus(cause, 401)) {
+      clearSession()
+      await router.replace({ name: 'login', query: { redirect: route.fullPath, expired: 'true' } })
+      return
+    }
+    analysisError.value = cause instanceof Error ? cause.message : 'Impossible de charger l’historique des analyses.'
+  } finally {
+    analysesLoading.value = false
+  }
+}
+
+async function analyzeTicket() {
+  if (!ticket.value || analyzing.value) return
+  analyzing.value = true
+  analysisError.value = ''
+  try {
+    const analysis = await requestTicketAnalysis(ticket.value.id)
+    analyses.value = [analysis, ...analyses.value.filter((item) => item.id !== analysis.id)]
+  } catch (cause) {
+    if (isApiErrorStatus(cause, 401)) {
+      clearSession()
+      await router.replace({ name: 'login', query: { redirect: route.fullPath, expired: 'true' } })
+      return
+    }
+    analysisError.value = cause instanceof Error ? cause.message : 'L’analyse IA a échoué. Réessayez.'
+  } finally {
+    analyzing.value = false
   }
 }
 
@@ -149,6 +193,29 @@ watch(() => route.params.id, loadTicket)
         <span v-if="!isStaff" class="status-badge" :class="`status-${ticket.status.toLowerCase()}`">{{ statusLabels[ticket.status] }}</span>
       </div>
       <p v-if="requestError" class="form-error" role="alert">{{ requestError }}</p>
+      <section v-if="canEditTicket" class="ticket-analysis-section" aria-labelledby="analysis-heading">
+        <div class="analysis-section-heading">
+          <div><h3 id="analysis-heading">Analyse assistée par IA</h3><p>Les résultats sont des suggestions à vérifier par un technicien.</p></div>
+          <button class="primary-button analysis-button" type="button" :disabled="analyzing" @click="analyzeTicket">
+            <span v-if="analyzing" class="spinner" aria-hidden="true"></span>
+            {{ analyzing ? 'Analyse en cours…' : analyses.length ? 'Relancer l’analyse' : 'Analyser le ticket' }}
+          </button>
+        </div>
+        <p v-if="analysisError" class="form-error" role="alert">{{ analysisError }} <button class="text-button" type="button" @click="loadAnalyses(ticket.id)">Recharger</button></p>
+        <div v-if="analysesLoading" class="analysis-loading" role="status">Chargement des analyses enregistrées…</div>
+        <p v-else-if="!analysisError && analyses.length === 0" class="analysis-empty">Aucune analyse enregistrée pour ce ticket.</p>
+        <article v-for="(analysis, index) in analyses" :key="analysis.id" class="analysis-card">
+          <div class="analysis-card-heading"><h4>{{ index === 0 ? 'Analyse la plus récente' : `Analyse précédente ${analyses.length - index}` }}</h4><time :datetime="analysis.createdAt">{{ formatDate(analysis.createdAt) }}</time></div>
+          <p class="analysis-summary">{{ analysis.summary }}</p>
+          <div class="analysis-suggestions"><div><span>Catégorie suggérée</span><strong>{{ categoryLabels[analysis.suggestedCategory] }}</strong></div>
+            <div><span>Priorité suggérée</span><strong><span class="priority-badge" :class="`priority-badge-${analysis.suggestedPriority.toLowerCase()}`">{{ priorityLabels[analysis.suggestedPriority] }}</span></strong></div>
+            <div><span>Modèle</span><strong>{{ analysis.modelUsed }}</strong></div>
+            <div><span>Indication de confiance</span><strong>{{ Math.round(analysis.confidence * 100) }} %</strong></div></div>
+          <div class="analysis-lists"><section><h5>Causes possibles</h5><ul><li v-for="cause in analysis.possibleCauses" :key="cause">{{ cause }}</li></ul></section>
+            <section><h5>Actions de diagnostic proposées</h5><ul><li v-for="action in analysis.suggestedActions" :key="action">{{ action }}</li></ul></section></div>
+          <p class="analysis-disclaimer">La confiance est une indication estimée par le modèle, pas une probabilité calibrée. Vérifiez ces suggestions avant toute intervention.</p>
+        </article>
+      </section>
       <form v-if="editing" class="ticket-edit-form" novalidate @submit.prevent="saveTicket">
         <div class="form-field"><label for="edit-title">Titre</label><input id="edit-title" v-model="form.title" maxlength="255" :disabled="saving" /></div>
         <div class="form-field"><label for="edit-category">Catégorie</label>

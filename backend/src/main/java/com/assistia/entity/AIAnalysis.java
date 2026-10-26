@@ -57,8 +57,11 @@ public class AIAnalysis {
     @Column(name = "proposed_actions")
     private String proposedActions;
 
-    @Column(name = "confidence_score", precision = 5, scale = 2)
+    @Column(name = "confidence_score", precision = 5, scale = 4)
     private BigDecimal confidenceScore;
+
+    @Column(name = "model_used", nullable = false, length = 100)
+    private String modelUsed;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -72,7 +75,8 @@ public class AIAnalysis {
             TicketPriority suggestedPriority,
             String possibleCauses,
             String proposedActions,
-            BigDecimal confidenceScore) {
+            BigDecimal confidenceScore,
+            String modelUsed) {
         this.ticket = ticket;
         this.summary = summary;
         this.suggestedCategory = suggestedCategory;
@@ -80,6 +84,7 @@ public class AIAnalysis {
         this.possibleCauses = possibleCauses;
         this.proposedActions = proposedActions;
         this.confidenceScore = confidenceScore;
+        this.modelUsed = modelUsed;
     }
 
     @PrePersist
@@ -145,6 +150,14 @@ public class AIAnalysis {
 
     public void setConfidenceScore(BigDecimal confidenceScore) {
         this.confidenceScore = confidenceScore;
+    }
+
+    public String getModelUsed() {
+        return modelUsed;
+    }
+
+    public void setModelUsed(String modelUsed) {
+        this.modelUsed = modelUsed;
     }
 
     public LocalDateTime getCreatedAt() {

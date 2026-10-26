@@ -1,5 +1,5 @@
 import { apiRequest, ApiError } from './api'
-import type { Ticket, TicketCategory, TicketFilters } from '@/types/ticket'
+import type { Ticket, TicketAnalysis, TicketCategory, TicketFilters } from '@/types/ticket'
 
 export interface CreateTicketInput {
   title: string
@@ -30,6 +30,26 @@ function isTicket(value: unknown): value is Ticket {
 
 function validateTicket(value: unknown): Ticket {
   if (!isTicket(value)) throw new ApiError('Le serveur a renvoyé un ticket dans un format inattendu.', 502)
+  return value
+}
+
+function isTicketAnalysis(value: unknown): value is TicketAnalysis {
+  if (!value || typeof value !== 'object') return false
+  const analysis = value as Record<string, unknown>
+  return Number.isInteger(analysis.id)
+    && Number.isInteger(analysis.ticketId)
+    && typeof analysis.summary === 'string'
+    && categories.includes(String(analysis.suggestedCategory))
+    && priorities.includes(String(analysis.suggestedPriority))
+    && Array.isArray(analysis.possibleCauses) && analysis.possibleCauses.every((item) => typeof item === 'string')
+    && Array.isArray(analysis.suggestedActions) && analysis.suggestedActions.every((item) => typeof item === 'string')
+    && typeof analysis.confidence === 'number' && analysis.confidence >= 0 && analysis.confidence <= 1
+    && typeof analysis.modelUsed === 'string'
+    && typeof analysis.createdAt === 'string'
+}
+
+function validateAnalysis(value: unknown): TicketAnalysis {
+  if (!isTicketAnalysis(value)) throw new ApiError('Le serveur a renvoyé une analyse dans un format inattendu.', 502)
   return value
 }
 
@@ -80,4 +100,17 @@ export async function changeTicketPriority(id: number, priority: Ticket['priorit
   if (!Number.isInteger(id) || id <= 0) throw new ApiError('Identifiant de ticket invalide.', 400)
   const data: unknown = await apiRequest(`/api/tickets/${id}/priority`, { method: 'PATCH', body: { priority } })
   return validateTicket(data)
+}
+
+export async function requestTicketAnalysis(id: number): Promise<TicketAnalysis> {
+  if (!Number.isInteger(id) || id <= 0) throw new ApiError('Identifiant de ticket invalide.', 400)
+  const data: unknown = await apiRequest(`/api/tickets/${id}/analysis`, { method: 'POST' })
+  return validateAnalysis(data)
+}
+
+export async function getTicketAnalyses(id: number): Promise<TicketAnalysis[]> {
+  if (!Number.isInteger(id) || id <= 0) throw new ApiError('Identifiant de ticket invalide.', 400)
+  const data: unknown = await apiRequest(`/api/tickets/${id}/analysis`)
+  if (!Array.isArray(data)) throw new ApiError('Le serveur a renvoyé un historique dans un format inattendu.', 502)
+  return data.map(validateAnalysis)
 }

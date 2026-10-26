@@ -22,6 +22,13 @@
 
     <dependencies>
 
+        <!-- Gemini Developer API -->
+        <dependency>
+            <groupId>com.google.genai</groupId>
+            <artifactId>google-genai</artifactId>
+            <version>1.79.0</version>
+        </dependency>
+
         <!-- API REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

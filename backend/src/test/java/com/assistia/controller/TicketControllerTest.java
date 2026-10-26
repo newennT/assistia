@@ -6,8 +6,10 @@ import com.assistia.entity.TicketPriority;
 import com.assistia.entity.TicketStatus;
 import com.assistia.entity.User;
 import com.assistia.entity.UserRole;
+import com.assistia.dto.TicketAnalysisResponse;
 import com.assistia.security.AssistiaPrincipal;
 import com.assistia.service.TicketService;
+import com.assistia.service.TicketAnalysisService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,9 @@ class TicketControllerTest {
 
     @MockitoBean
     private TicketService ticketService;
+
+    @MockitoBean
+    private TicketAnalysisService ticketAnalysisService;
 
     private MockHttpServletRequestBuilder asTechnician(MockHttpServletRequestBuilder request) {
         User user = mock(User.class);
@@ -188,6 +193,25 @@ class TicketControllerTest {
                         .content("{\"technicianId\":55}")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.assigneeId").value(55));
+    }
+
+    @Test
+    void createsAndListsTicketAnalysesForAuthenticatedPrincipal() throws Exception {
+        TicketAnalysisResponse analysis = new TicketAnalysisResponse(
+                3L, 42L, "Analyse factuelle", TicketCategory.VPN, TicketPriority.HIGH,
+                List.of("DNS"), List.of("Tester le DNS"), java.math.BigDecimal.valueOf(0.75),
+                "gemini-3.8-flash", LocalDateTime.of(2026, 10, 26, 12, 0));
+        when(ticketAnalysisService.analyze(42L, 12L, UserRole.TECHNICIAN)).thenReturn(analysis);
+        when(ticketAnalysisService.getHistory(42L, 12L, UserRole.TECHNICIAN)).thenReturn(List.of(analysis));
+
+        mockMvc.perform(asTechnician(post("/api/tickets/42/analysis")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(3))
+                .andExpect(jsonPath("$.suggestedCategory").value("VPN"))
+                .andExpect(jsonPath("$.modelUsed").value("gemini-3.8-flash"));
+        mockMvc.perform(asTechnician(get("/api/tickets/42/analysis")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].ticketId").value(42));
     }
 
     @Test

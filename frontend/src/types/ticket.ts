@@ -17,6 +17,19 @@ export interface Ticket {
   updatedAt: string
 }
 
+export interface TicketAnalysis {
+  id: number
+  ticketId: number
+  summary: string
+  suggestedCategory: TicketCategory
+  suggestedPriority: TicketPriority
+  possibleCauses: string[]
+  suggestedActions: string[]
+  confidence: number
+  modelUsed: string
+  createdAt: string
+}
+
 export interface TicketFilters {
   status?: TicketStatus
   priority?: TicketPriority

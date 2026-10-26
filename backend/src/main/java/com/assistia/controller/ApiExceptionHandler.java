@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,6 +53,14 @@ public class ApiExceptionHandler {
             AccessDeniedException exception,
             HttpServletRequest request) {
         return response(HttpStatus.FORBIDDEN, "Accès refusé.", request);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiErrorResponse> handlePersistenceFailure(
+            DataAccessException exception,
+            HttpServletRequest request) {
+        return response(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Une erreur est survenue lors de l'accès aux données.", request);
     }
 
     private ResponseEntity<ApiErrorResponse> response(

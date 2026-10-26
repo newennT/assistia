@@ -195,6 +195,26 @@ h1, h2, h3, p { margin-top: 0; }
 .description-section h3 { margin: 0 0 10px; font: 700 13px 'Manrope', sans-serif; }
 .description-section p { margin: 0; color: #596b80; font-size: 12px; line-height: 1.7; white-space: pre-wrap; }
 .ticket-edit-form { display: grid; gap: 18px; padding-top: 20px; }
+.ticket-analysis-section { display: grid; gap: 15px; margin: 22px 0 4px; padding: 19px; border: 1px solid #dce7f2; border-radius: 8px; background: #f9fbfd; }
+.analysis-section-heading, .analysis-card-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+.analysis-section-heading h3 { margin: 0 0 5px; font: 700 14px 'Manrope', sans-serif; }
+.analysis-section-heading p, .analysis-empty, .analysis-loading { margin: 0; color: #78879a; font-size: 11px; line-height: 1.5; }
+.analysis-button { min-height: 36px; flex-shrink: 0; padding: 7px 12px; font-size: 11px; }
+.analysis-card { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 7px; background: #fff; }
+.analysis-card-heading { align-items: center; padding-bottom: 11px; border-bottom: 1px solid #edf0f3; }
+.analysis-card-heading h4 { margin: 0; color: #43546a; font: 700 12px 'Manrope', sans-serif; }
+.analysis-card-heading time { color: #8794a5; font-size: 10px; }
+.analysis-summary { margin: 0; color: #45586f; font-size: 12px; line-height: 1.65; white-space: pre-wrap; }
+.analysis-suggestions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.analysis-suggestions > div { display: grid; align-content: start; gap: 6px; }
+.analysis-suggestions span:not(.priority-badge) { color: #8794a5; font-size: 9px; }
+.analysis-suggestions strong { color: #45586f; font-size: 10px; font-weight: 600; }
+.analysis-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-top: 2px; }
+.analysis-lists h5 { margin: 0 0 7px; color: #596b80; font-size: 10px; font-weight: 700; }
+.analysis-lists ul { display: grid; gap: 6px; margin: 0; padding-left: 17px; color: #64748a; font-size: 10px; line-height: 1.5; }
+.analysis-disclaimer { margin: 0; padding-top: 10px; border-top: 1px solid #edf0f3; color: #8794a5; font-size: 9px; line-height: 1.5; }
+.ticket-analysis-section .form-error { margin: 0; }
+.ticket-analysis-section .text-button { margin: 0 0 0 4px; }
 .ticket-edit-form .form-actions { padding-bottom: 0; }
 .detail-meta .form-field { gap: 6px; }
 .detail-meta .form-field label { color: #8794a5; font-size: 10px; }
@@ -251,6 +271,10 @@ h1, h2, h3, p { margin-top: 0; }
   .detail-heading { align-items: start; flex-direction: column; gap: 12px; }
   .detail-heading h2 { font-size: 19px; }
   .ticket-detail-card { padding: 19px; }
+  .analysis-section-heading { align-items: stretch; flex-direction: column; }
+  .analysis-button { width: 100%; }
+  .analysis-suggestions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analysis-lists { grid-template-columns: 1fr; gap: 12px; }
   .detail-meta { gap: 18px 12px; }
   .ticket-form { gap: 18px; padding: 18px; }
   .form-actions { flex-direction: column-reverse; }
