@@ -48,11 +48,9 @@ onMounted(loadTickets)
   <div class="dashboard-page">
     <section class="welcome-panel">
       <div class="welcome-copy">
-        <span class="eyebrow">ESPACE SUPPORT</span>
         <h2>Bonjour {{ authState.user?.firstName }},</h2>
         <p>Voici l’activité des tickets auxquels votre compte a accès.</p>
       </div>
-      <div class="welcome-orb" aria-hidden="true">A</div>
     </section>
 
     <div v-if="loading" class="state-card" role="status"><span class="spinner" aria-hidden="true"></span>Chargement du dashboard…</div>
