@@ -12,7 +12,11 @@ import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 import com.google.genai.types.Schema;
+import com.google.genai.types.ThinkingConfig;
+import com.google.genai.types.ThinkingLevel;
 import com.google.genai.types.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +25,8 @@ import java.net.SocketTimeoutException;
 import java.io.InterruptedIOException;
 
 public class GeminiStructuredOutputProvider implements GeminiAnalysisProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(GeminiStructuredOutputProvider.class);
 
     private static final String SYSTEM_INSTRUCTIONS = """
             You are an IT support ticket analysis assistant. Analyze only the supplied ticket data.
@@ -51,7 +57,9 @@ public class GeminiStructuredOutputProvider implements GeminiAnalysisProvider {
                     .systemInstruction(Content.fromParts(Part.fromText(SYSTEM_INSTRUCTIONS)))
                     .responseMimeType("application/json")
                     .responseSchema(responseSchema())
-                    .candidateCount(1)
+                    .thinkingConfig(ThinkingConfig.builder()
+                            .thinkingLevel(ThinkingLevel.Known.LOW)
+                            .build())
                     .maxOutputTokens(1800)
                     .build();
             GenerateContentResponse response = client.models.generateContent(
@@ -64,13 +72,19 @@ public class GeminiStructuredOutputProvider implements GeminiAnalysisProvider {
             }
             return text;
         } catch (ApiException exception) {
+            logger.warn("Gemini API rejected the analysis request (HTTP {}, status: {}, message: {}).",
+                    exception.code(), exception.status(), exception.message());
             throw new GeminiProviderException(exception.code());
         } catch (JsonProcessingException exception) {
             throw new InvalidGeminiResponseException();
         } catch (InvalidGeminiResponseException exception) {
             throw exception;
         } catch (RuntimeException exception) {
-            throw new GeminiProviderException(isTimeout(exception) ? 504 : 0);
+            boolean timeout = isTimeout(exception);
+            logger.warn("Gemini analysis request {} (exception type: {}).",
+                    timeout ? "timed out" : "failed unexpectedly",
+                    exception.getClass().getSimpleName());
+            throw new GeminiProviderException(timeout ? 504 : 0);
         }
     }
 

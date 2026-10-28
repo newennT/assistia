@@ -9,7 +9,8 @@ services:
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: "AssistIA_StrongPassword123!"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      GEMINI_TIMEOUT_MS: ${GEMINI_TIMEOUT_MS:-90000}
     ports:
       - "8080:8080"
     depends_on:

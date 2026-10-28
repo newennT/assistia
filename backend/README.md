@@ -1,5 +1,24 @@
 # AssistIA — API tickets et authentification
 
+## Configurer l'analyse Gemini avec Docker Compose
+
+Docker Compose lit les variables `${GEMINI_API_KEY}` depuis l'environnement du shell ou le fichier `.env` à la
+racine du dépôt. Les fichiers `.env.example` et `backend/.env` ne sont pas chargés automatiquement. Créer le fichier
+attendu à partir de l'exemple, renseigner la clé, puis recréer le backend :
+
+```sh
+cp .env.example .env
+```
+
+Après avoir remplacé la valeur de `GEMINI_API_KEY` dans `.env` :
+
+```sh
+docker compose up -d --force-recreate backend
+```
+
+Le backend reçoit la clé au démarrage via `docker-compose.yml`. Pour une exécution sans Docker, définir
+`GEMINI_API_KEY` dans l'environnement du processus Java. Ne pas mettre une vraie clé dans un fichier `.env.example`.
+
 ## Authentification par session
 
 L'API utilise Spring Security et des sessions HTTP, pas de JWT. Les mots de passe sont stockés sous forme de hash
