@@ -1,0 +1,95 @@
+@use '../abstracts/tokens' as tokens;
+
+.form-error {
+  margin: -5px 0 13px;
+  color: tokens.$color-danger;
+  font-size: 11px;
+}
+
+.logout-error {
+  margin: 0 0 16px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff70;
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.text-link,
+.back-link {
+  color: #315d8d;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge,
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.priority-badge-critical {
+  background: #fcebec;
+  color: #a43f46;
+}
+
+.priority-badge-high {
+  background: #fff0e5;
+  color: #a85b27;
+}
+
+.priority-badge-medium {
+  background: #fff7df;
+  color: #8a6c1e;
+}
+
+.priority-badge-low {
+  background: tokens.$color-surface-success;
+  color: #32815f;
+}
+
+.state-card {
+  display: flex;
+  min-height: 112px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  color: #6f7f93;
+  font-size: 13px;
+}
+
+.error-state {
+  flex-wrap: wrap;
+  color: #a43f46;
+}
+
+.form-notice {
+  margin: 0 0 15px;
+  padding: 10px 12px;
+  border: 1px solid #dce7f2;
+  border-radius: 6px;
+  background: #f5f8fc;
+  color: #476d96;
+  font-size: 11px;
+}

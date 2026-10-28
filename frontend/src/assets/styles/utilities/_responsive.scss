@@ -1,0 +1,257 @@
+@use '../abstracts/tokens' as tokens;
+
+@media (max-width: tokens.$breakpoint-tablet) {
+  .sidebar {
+    width: 220px;
+  }
+  .main-area {
+    margin-left: 220px;
+  }
+  .topbar {
+    padding-inline: 27px;
+  }
+  .page-content {
+    padding: 30px 27px 50px;
+  }
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  .sidebar {
+    z-index: 12;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+  .sidebar-open {
+    transform: translateX(0);
+  }
+  .mobile-menu-toggle {
+    position: fixed;
+    z-index: 13;
+    top: 18px;
+    left: 14px;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: white;
+    color: var(--ink);
+  }
+  .mobile-scrim {
+    position: fixed;
+    z-index: 11;
+    inset: 0;
+    display: block;
+    background: #17283d66;
+  }
+  .main-area {
+    margin-left: 0;
+  }
+  .topbar {
+    min-height: 78px;
+    padding: 13px 14px 13px 60px;
+  }
+  .breadcrumb {
+    display: none;
+  }
+  .topbar h1 {
+    font-size: 17px;
+  }
+  .profile-area {
+    gap: 8px;
+  }
+  .profile-copy {
+    display: none;
+  }
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .signout-button {
+    margin-left: 0;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .page-content {
+    padding: 22px 16px 40px;
+  }
+  .welcome-panel {
+    min-height: 170px;
+    padding: 23px;
+  }
+  .welcome-copy h2 {
+    font-size: 20px;
+  }
+  .welcome-orb {
+    width: 67px;
+    height: 67px;
+    margin-right: 0;
+    border-radius: 23px;
+    font-size: 31px;
+  }
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+  .feature-card {
+    min-height: 130px;
+  }
+  .login-card {
+    padding: 29px 23px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: tokens.$breakpoint-tablet) {
+  .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+  .ticket-table th,
+  .ticket-table td {
+    padding-inline: 11px;
+  }
+  .detail-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .stat-card {
+    min-height: 78px;
+    padding: 13px 16px;
+  }
+  .stat-icon {
+    width: 37px;
+    height: 37px;
+    flex-basis: 37px;
+  }
+  .dashboard-columns {
+    gap: 12px;
+  }
+  .priority-panel,
+  .recent-panel {
+    padding: 17px;
+  }
+  .recent-panel .section-heading {
+    align-items: start;
+  }
+  .recent-ticket {
+    align-items: start;
+  }
+  .recent-ticket .status-badge {
+    font-size: 9px;
+  }
+  .page-intro {
+    align-items: start;
+  }
+  .page-intro h2 {
+    font-size: 19px;
+  }
+  .filters {
+    flex-wrap: wrap;
+    padding: 14px;
+  }
+  .filters label {
+    flex: 1 1 130px;
+  }
+  .filters select {
+    width: 100%;
+    min-width: 0;
+  }
+  .reset-filters {
+    margin-left: 0;
+  }
+  .ticket-table,
+  .ticket-table tbody,
+  .ticket-table tr,
+  .ticket-table td {
+    display: block;
+    width: 100%;
+  }
+  .ticket-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .ticket-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px 14px;
+    padding: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .ticket-table td {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    padding: 0;
+    border: 0;
+    font-size: 10px;
+  }
+  .ticket-table td::before {
+    content: attr(data-label);
+    color: #96a2b0;
+    font-size: 9px;
+  }
+  .ticket-table td:first-child {
+    grid-column: 1 / -1;
+  }
+  .ticket-title-link strong {
+    max-width: 100%;
+    white-space: normal;
+  }
+  .detail-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .detail-heading h2 {
+    font-size: 19px;
+  }
+  .ticket-detail-card {
+    padding: 19px;
+  }
+  .analysis-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .analysis-button {
+    width: 100%;
+  }
+  .analysis-suggestions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .analysis-lists {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .detail-meta {
+    gap: 18px 12px;
+  }
+  .ticket-form {
+    gap: 18px;
+    padding: 18px;
+  }
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  .form-actions > * {
+    width: 100%;
+  }
+}

@@ -1,0 +1,222 @@
+@use '../abstracts/tokens' as tokens;
+
+.dashboard-page,
+.tickets-page,
+.ticket-detail-page {
+  display: grid;
+  gap: 22px;
+}
+
+.dashboard-page .welcome-panel {
+  margin-bottom: 2px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.stat-card {
+  display: flex;
+  min-height: 104px;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: tokens.$color-white;
+}
+
+.stat-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 19px;
+}
+
+.stat-open {
+  background: tokens.$color-surface-blue;
+  color: #416995;
+}
+
+.stat-progress {
+  background: #fff5e6;
+  color: #a97925;
+}
+
+.stat-resolved {
+  background: tokens.$color-surface-success;
+  color: #37936d;
+}
+
+.stat-card div {
+  display: grid;
+  gap: 5px;
+
+  span {
+    color: tokens.$color-text-secondary;
+    font-size: 12px;
+  }
+}
+
+.stat-card strong {
+  font:
+    700 25px 'Manrope',
+    sans-serif;
+}
+
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.78fr) minmax(0, 1.4fr);
+  gap: 16px;
+}
+
+.priority-panel,
+.recent-panel {
+  padding: 22px;
+}
+
+.section-heading {
+  margin: 0 0 19px;
+}
+
+.section-heading h2 {
+  margin-bottom: 5px;
+  font:
+    700 15px 'Manrope',
+    sans-serif;
+}
+
+.section-heading p {
+  font-size: 11px;
+}
+
+.priority-list {
+  display: grid;
+  gap: 17px;
+}
+
+.priority-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 22px;
+  align-items: center;
+  gap: 10px;
+  color: #64748a;
+  font-size: 11px;
+
+  strong {
+    color: var(--ink);
+    text-align: right;
+    font-size: 11px;
+  }
+}
+
+.priority-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f0f2f5;
+}
+
+.priority-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+}
+
+.priority-critical {
+  background: #bd4d54;
+}
+
+.priority-high {
+  background: #df8a55;
+}
+
+.priority-medium {
+  background: #d1ae53;
+}
+
+.priority-low {
+  background: #5b9c7e;
+}
+
+.recent-panel .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recent-list {
+  display: grid;
+}
+
+.recent-ticket {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid tokens.$color-border-subtle;
+}
+
+.recent-ticket:first-child {
+  border-top: 0;
+}
+
+.recent-ticket-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+
+  strong {
+    overflow: hidden;
+    color: tokens.$color-text-strong;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: tokens.$color-text-subtle;
+    font-size: 10px;
+  }
+}
+
+.status-open {
+  background: tokens.$color-surface-blue;
+  color: #3c6694;
+}
+
+.status-in_progress {
+  background: #fff4df;
+  color: #936c22;
+}
+
+.status-pending {
+  background: #f2effa;
+  color: #745d9c;
+}
+
+.status-resolved {
+  background: tokens.$color-surface-success;
+  color: #32815f;
+}
+
+.status-closed {
+  background: #f0f2f4;
+  color: #697789;
+}
+
+.empty-copy {
+  margin: 0;
+  padding: 18px 0 5px;
+  color: tokens.$color-text-subtle;
+  font-size: 12px;
+}
