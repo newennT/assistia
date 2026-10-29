@@ -8,10 +8,6 @@ const router = useRouter()
 const mobileMenuOpen = ref(false)
 const logoutError = ref('')
 const displayName = computed(() => `${authState.user?.firstName ?? ''} ${authState.user?.lastName ?? ''}`.trim())
-const initials = computed(() => {
-  const user = authState.user
-  return user ? `${user.firstName[0] ?? ''}${user.lastName[0] ?? ''}`.toUpperCase() : 'A'
-})
 const titles: Record<string, string> = {
   home: 'Dashboard',
   tickets: 'Tickets',
@@ -47,7 +43,7 @@ async function signOut() {
     <button class="mobile-menu-toggle" type="button" aria-label="Ouvrir le menu" @click="mobileMenuOpen = !mobileMenuOpen">☰</button>
     <aside class="sidebar" :class="{ 'sidebar-open': mobileMenuOpen }">
       <RouterLink class="brand" to="/" @click="mobileMenuOpen = false">
-        <span class="brand-mark">A</span><span>Assist<span class="brand-accent">IA</span></span>
+        <span>Assist<span class="brand-accent">IA</span></span>
       </RouterLink>
       <div class="workspace-label">ESPACE DE TRAVAIL</div>
       <nav aria-label="Navigation principale" class="side-nav">
@@ -70,7 +66,6 @@ async function signOut() {
         <div><div class="breadcrumb">AssistIA <span>/</span> {{ pageTitle }}</div><h1>{{ pageTitle }}</h1></div>
         <div class="profile-area">
           <div class="profile-copy"><strong>{{ displayName || 'Utilisateur' }}</strong><span>{{ authState.user?.role }}</span></div>
-          <div class="avatar" aria-hidden="true">{{ initials }}</div>
           <button class="signout-button" type="button" @click="signOut">Déconnexion</button>
         </div>
       </header>
