@@ -63,6 +63,21 @@ class TicketServiceTest {
     }
 
     @Test
+    void searchesOnlyMatchingDiagnosticTicketsWithinTheRequestedScope() {
+        User owner = newUser("search-owner", UserRole.USER);
+        User other = newUser("search-other", UserRole.USER);
+        userRepository.saveAndFlush(owner);
+        userRepository.saveAndFlush(other);
+        ticketService.createTicket("VPN failure", "VPN is unavailable", TicketStatus.OPEN,
+                TicketPriority.HIGH, TicketCategory.VPN, owner.getId());
+        ticketService.createTicket("VPN other", "Other user's VPN", TicketStatus.OPEN,
+                TicketPriority.LOW, TicketCategory.VPN, other.getId());
+
+        assertThat(ticketService.searchDiagnosticTickets("vpn", TicketCategory.VPN, owner.getId(), 5))
+                .hasSize(1).allMatch(ticket -> ticket.getCreator().getId().equals(owner.getId()));
+    }
+
+    @Test
     void refusesCreationWhenCreatorDoesNotExist() {
         assertThatThrownBy(() -> ticketService.createTicket(
                 "Ticket sans créateur",

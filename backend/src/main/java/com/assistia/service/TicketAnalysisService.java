@@ -69,7 +69,7 @@ public class TicketAnalysisService {
         final TicketAnalysisContent content;
         try {
             String response = provider.generate(new AnalysisTicketContext(
-                    ticket.getTitle(), ticket.getDescription(), ticket.getCategory()));
+                    ticket.getTitle(), ticket.getDescription(), ticket.getCategory()), userId, role);
             content = objectMapper.readValue(response, TicketAnalysisContent.class);
         } catch (GeminiProviderException exception) {
             throw providerError(exception.getStatusCode());

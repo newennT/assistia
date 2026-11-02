@@ -55,7 +55,7 @@ class TicketAnalysisServiceTest {
         Ticket ticket = ticket();
         when(ticketService.getTicketByIdForCreator(42L, 8L)).thenReturn(ticket);
         when(providerProvider.getIfAvailable()).thenReturn(provider);
-        when(provider.generate(any())).thenReturn(validJson());
+        when(provider.generate(any(), any(), any())).thenReturn(validJson());
         com.assistia.entity.AIAnalysis saved = persistedAnalysis(ticket);
         when(persistenceService.persist(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(saved);
@@ -90,7 +90,7 @@ class TicketAnalysisServiceTest {
     void letsTechniciansUseGeneralTicketAccess() {
         when(ticketService.getTicketById(42L)).thenReturn(ticket());
         when(providerProvider.getIfAvailable()).thenReturn(provider);
-        when(provider.generate(any())).thenReturn("invalid JSON");
+        when(provider.generate(any(), any(), any())).thenReturn("invalid JSON");
 
         assertThatThrownBy(() -> analysisService.analyze(42L, 12L, UserRole.TECHNICIAN))
                 .isInstanceOf(ResponseStatusException.class);
@@ -111,7 +111,7 @@ class TicketAnalysisServiceTest {
     void rejectsOutputWithUnknownEnumOrInvalidConfidenceAndDoesNotPersist() {
         when(ticketService.getTicketById(42L)).thenReturn(ticket());
         when(providerProvider.getIfAvailable()).thenReturn(provider);
-        when(provider.generate(any())).thenReturn(validJson().replace("\"VPN\"", "\"UNSUPPORTED\"")
+        when(provider.generate(any(), any(), any())).thenReturn(validJson().replace("\"VPN\"", "\"UNSUPPORTED\"")
                 .replace("0.75", "1.5"));
 
         assertThatThrownBy(() -> analysisService.analyze(42L, 12L, UserRole.ADMIN))
@@ -124,7 +124,7 @@ class TicketAnalysisServiceTest {
     void mapsGeminiRateLimitErrorsWithoutLeakingProviderDetails() {
         when(ticketService.getTicketById(42L)).thenReturn(ticket());
         when(providerProvider.getIfAvailable()).thenReturn(provider);
-        when(provider.generate(any())).thenThrow(new GeminiProviderException(429));
+        when(provider.generate(any(), any(), any())).thenThrow(new GeminiProviderException(429));
 
         assertThatThrownBy(() -> analysisService.analyze(42L, 12L, UserRole.TECHNICIAN))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
@@ -136,7 +136,7 @@ class TicketAnalysisServiceTest {
     void mapsGeminiTimeoutsToGatewayTimeout() {
         when(ticketService.getTicketById(42L)).thenReturn(ticket());
         when(providerProvider.getIfAvailable()).thenReturn(provider);
-        when(provider.generate(any())).thenThrow(new GeminiProviderException(504));
+        when(provider.generate(any(), any(), any())).thenThrow(new GeminiProviderException(504));
 
         assertThatThrownBy(() -> analysisService.analyze(42L, 12L, UserRole.TECHNICIAN))
                 .isInstanceOfSatisfying(ResponseStatusException.class,

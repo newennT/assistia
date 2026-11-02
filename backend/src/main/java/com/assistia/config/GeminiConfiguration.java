@@ -2,6 +2,7 @@ package com.assistia.config;
 
 import com.assistia.service.GeminiAnalysisProvider;
 import com.assistia.service.GeminiStructuredOutputProvider;
+import com.assistia.service.TicketDiagnosticTools;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
@@ -28,7 +29,8 @@ public class GeminiConfiguration {
     GeminiAnalysisProvider geminiAnalysisProvider(
             Client geminiClient,
             ObjectMapper objectMapper,
+            TicketDiagnosticTools diagnosticTools,
             @Value("${assistia.gemini.model:gemini-3.8-flash}") String model) {
-        return new GeminiStructuredOutputProvider(geminiClient, objectMapper, model);
+        return new GeminiStructuredOutputProvider(geminiClient.models, objectMapper, model, diagnosticTools);
     }
 }

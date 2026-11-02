@@ -11,6 +11,7 @@ import com.assistia.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -18,6 +19,8 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class TicketService {
+
+    private static final int MAX_DIAGNOSTIC_SEARCH_RESULTS = 5;
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
@@ -59,6 +62,16 @@ public class TicketService {
             throw new EntityNotFoundException("Ticket introuvable : " + ticketId);
         }
         return ticket;
+    }
+
+    public List<Ticket> searchDiagnosticTickets(String query, TicketCategory category, Long creatorId, int limit) {
+        if (query == null || query.isBlank() || query.length() > 200) {
+            throw new IllegalArgumentException("Requête de recherche invalide.");
+        }
+        if (limit < 1 || limit > MAX_DIAGNOSTIC_SEARCH_RESULTS) {
+            throw new IllegalArgumentException("Limite de recherche invalide.");
+        }
+        return ticketRepository.searchDiagnosticTickets(query.trim(), category, creatorId, PageRequest.of(0, limit));
     }
 
     public List<Ticket> findByCreator(Long creatorId, TicketStatus status, TicketPriority priority) {
