@@ -1,0 +1,27 @@
+services:
+  sqlserver-2025-candidate:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: assistia-sqlserver-2025-candidate
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env.sqlserver2025}
+    ports:
+      - "127.0.0.1:1434:1433"
+    volumes:
+      - sqlserver2025_candidate_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  sqlserver2025_candidate_data:
+    name: assistia_sqlserver2025_candidate_data
