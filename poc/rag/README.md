@@ -95,6 +95,22 @@ An embedding is a fixed-length numeric representation of text. Cosine distance m
 
 The search is exact: `VECTOR_DISTANCE` calculates distances across all six rows. This validates type support and the end-to-end data path, not production-scale performance or an approximate vector index.
 
+## AssistIA backend document model (Phase 2)
+
+The backend Flyway V5 migration adds the relational document lifecycle and chunk storage. It preserves the original `content`, `category`, and `source_reference` columns. Existing rows receive `current_version = 1`, `indexing_version = 1`, `indexing_status = 'PENDING'`, and `imported_at = created_at`; filename, media type, byte size, checksum, and importer remain unknown/null.
+
+In `knowledge_documents`, `original_filename`, `mime_type`, `file_size_bytes`, and `content_sha256` describe the source file; `imported_at` and nullable `imported_by_id` record import provenance. `created_at`/`updated_at` remain the existing row audit dates. `current_version` is the published version; `indexing_version` plus `indexing_status` describe the candidate build.
+
+`knowledge_documents.current_version` identifies the complete version currently available for retrieval. `indexing_version` identifies the version targeted by `indexing_status`. This lets the system build chunks for version N+1 while version N remains current. Only after all chunks and embeddings for the target are ready should application logic atomically set `current_version = indexing_version` and `indexing_status = 'INDEXED'`. A failed attempt can set `FAILED` without removing the prior version. `OUTDATED` indicates re-indexing is needed. No import or indexing worker is implemented in this phase.
+
+`knowledge_chunks` stores versioned text fragments with a unique document/version/position tuple, optional source page and offsets, and a nullable SQL Server `VECTOR(1536)`. It can hold multiple versions concurrently. There is intentionally no approximate vector index. The vector column is not mapped by Hibernate; future vector reads and writes use JDBC with `microsoft.sql.Vector`, `setObject(..., Types.VECTOR)`, and `getObject(..., Vector.class)`.
+
+Each chunk row holds `document_id`, `document_version`, zero-based `chunk_position`, `content`, and `estimated_token_count`; `source_page`, `source_start_offset`, and `source_end_offset` locate text in its source when known. `embedding_model` and `embedding_dimension` describe a populated vector; all embedding data can remain null before indexing. `created_at` and `updated_at` audit the chunk row. The SQL vector type enforces 1,536 dimensions, and the relational dimension check rejects any non-null `embedding_dimension` other than 1,536.
+
+Chunks are not cascaded from document deletion, and the schema does not cascade-delete old versions. This preserves citation targets. Proposed later `ai_analysis_sources` columns are `id`, `ai_analysis_id`, `document_id`, `document_version`, `chunk_id`, nullable `citation_rank`, nullable `distance`, and `created_at`. It should have a foreign key from `ai_analysis_id` to `ai_analyses(id)` and a composite foreign key `(chunk_id, document_id, document_version)` to the corresponding chunk. V6 will need a unique key on `knowledge_chunks(id, document_id, document_version)` to support that composite foreign key. Add a uniqueness rule for `(ai_analysis_id, chunk_id)` if one analysis can cite a chunk only once, and check non-null ranks are positive and distances nonnegative. Do not cascade-delete sources or chunks while analyses are retained. The table is deferred until analysis deletion/retention behavior and citation cardinality are defined. Distance is meaningful only alongside the retrieval metric/model context, which can be added if query auditability requires it.
+
+The relational columns use checks for legal lifecycle states, positive versions, nonnegative sizes/counts, ordered source offsets, checksum format, and the fixed 1,536 embedding dimension. The importing user is nullable and references `users`; V5 does not attribute legacy documents to the system user.
+
 ## Results of the compatibility run
 
 Run on 2026-11-03:
