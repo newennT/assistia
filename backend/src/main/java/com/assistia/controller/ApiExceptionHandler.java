@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -46,6 +47,12 @@ public class ApiExceptionHandler {
         HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
         return response(status, exception.getReason() == null ? status.getReasonPhrase() : exception.getReason(),
                 request);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleUploadTooLarge(HttpServletRequest request) {
+        return response(HttpStatus.PAYLOAD_TOO_LARGE,
+                "Le fichier dépasse la taille maximale autorisée.", request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -20,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -162,6 +164,26 @@ class AuthAndTicketSecurityIntegrationTest {
         mockMvc.perform(get("/api/tickets"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Authentification requise."));
+    }
+
+    @Test
+    void knowledgeDocumentsAreRestrictedToTechniciansAndAdmins() throws Exception {
+        mockMvc.perform(get("/api/knowledge-documents"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/knowledge-documents").session(login(USER_EMAIL)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/knowledge-documents").session(login(TECH_EMAIL)))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/knowledge-documents").session(login(ADMIN_EMAIL)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void technicianKnowledgeImportStillRequiresCsrf() throws Exception {
+        mockMvc.perform(multipart("/api/knowledge-documents")
+                        .file(new MockMultipartFile("file", "guide.md", "text/markdown", "# Guide".getBytes()))
+                        .session(login(TECH_EMAIL)))
+                .andExpect(status().isForbidden());
     }
 
     @Test

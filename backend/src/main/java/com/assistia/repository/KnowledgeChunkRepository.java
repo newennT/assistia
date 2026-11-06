@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface KnowledgeChunkRepository extends JpaRepository<KnowledgeChunk, Long> {
     List<KnowledgeChunk> findAllByDocumentIdAndDocumentVersionOrderByChunkPosition(Long documentId, Integer documentVersion);
+
+    long countByDocumentIdAndDocumentVersion(Long documentId, Integer documentVersion);
 }

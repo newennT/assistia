@@ -101,7 +101,7 @@ The backend Flyway V5 migration adds the relational document lifecycle and chunk
 
 In `knowledge_documents`, `original_filename`, `mime_type`, `file_size_bytes`, and `content_sha256` describe the source file; `imported_at` and nullable `imported_by_id` record import provenance. `created_at`/`updated_at` remain the existing row audit dates. `current_version` is the published version; `indexing_version` plus `indexing_status` describe the candidate build.
 
-`knowledge_documents.current_version` identifies the complete version currently available for retrieval. `indexing_version` identifies the version targeted by `indexing_status`. This lets the system build chunks for version N+1 while version N remains current. Only after all chunks and embeddings for the target are ready should application logic atomically set `current_version = indexing_version` and `indexing_status = 'INDEXED'`. A failed attempt can set `FAILED` without removing the prior version. `OUTDATED` indicates re-indexing is needed. No import or indexing worker is implemented in this phase.
+`knowledge_documents.current_version` identifies the version currently published. `indexing_version` identifies the candidate targeted by `indexing_status`. This lets the system prepare chunks for version N+1 while version N remains current. Only after all chunks and embeddings for the target are ready should a future embedding pipeline atomically set `current_version = indexing_version` and `indexing_status = 'INDEXED'`. The V6 migration adds `AWAITING_EMBEDDINGS`; Phase 3 ends in that state, without changing `current_version` or generating embeddings. A failed attempt can set `FAILED` without removing the prior version. `OUTDATED` indicates re-indexing is needed.
 
 `knowledge_chunks` stores versioned text fragments with a unique document/version/position tuple, optional source page and offsets, and a nullable SQL Server `VECTOR(1536)`. It can hold multiple versions concurrently. There is intentionally no approximate vector index. The vector column is not mapped by Hibernate; future vector reads and writes use JDBC with `microsoft.sql.Vector`, `setObject(..., Types.VECTOR)`, and `getObject(..., Vector.class)`.
 
@@ -109,7 +109,82 @@ Each chunk row holds `document_id`, `document_version`, zero-based `chunk_positi
 
 Chunks are not cascaded from document deletion, and the schema does not cascade-delete old versions. This preserves citation targets. Proposed later `ai_analysis_sources` columns are `id`, `ai_analysis_id`, `document_id`, `document_version`, `chunk_id`, nullable `citation_rank`, nullable `distance`, and `created_at`. It should have a foreign key from `ai_analysis_id` to `ai_analyses(id)` and a composite foreign key `(chunk_id, document_id, document_version)` to the corresponding chunk. V6 will need a unique key on `knowledge_chunks(id, document_id, document_version)` to support that composite foreign key. Add a uniqueness rule for `(ai_analysis_id, chunk_id)` if one analysis can cite a chunk only once, and check non-null ranks are positive and distances nonnegative. Do not cascade-delete sources or chunks while analyses are retained. The table is deferred until analysis deletion/retention behavior and citation cardinality are defined. Distance is meaningful only alongside the retrieval metric/model context, which can be added if query auditability requires it.
 
-The relational columns use checks for legal lifecycle states, positive versions, nonnegative sizes/counts, ordered source offsets, checksum format, and the fixed 1,536 embedding dimension. The importing user is nullable and references `users`; V5 does not attribute legacy documents to the system user.
+The relational columns use checks for legal lifecycle states, nonnegative current version (zero means no published version yet), positive candidate/chunk versions, nonnegative sizes/counts, ordered source offsets, checksum format, and the fixed 1,536 embedding dimension. The importing user is nullable and references `users`; V5 does not attribute legacy documents to the system user.
+
+## AssistIA document ingestion (Phase 3)
+
+The backend accepts only `.md`, `.markdown`, and `.pdf` uploads. Markdown is decoded strictly as UTF-8; headings, paragraphs, lists, and fenced code are kept as semantic blocks. PDFBox extracts each page separately and records its 1-based page number on each chunk. A PDF must have a PDF signature and parse successfully; files with no usable text are rejected. There is no OCR. The client MIME type is ignored.
+
+Imports require `TECHNICIAN` or `ADMIN`. The role check runs in Spring Security for every knowledge-document endpoint. The existing cookie/session CSRF protection applies to the multipart `POST` import and archive `POST`; the frontend must send `X-XSRF-TOKEN` exactly as for other state-changing endpoints. Files are limited to 20 MiB by default at both the multipart parser and service layer (`ASSISTIA_KNOWLEDGE_MAX_FILE_SIZE`, `ASSISTIA_KNOWLEDGE_MAX_FILE_SIZE_BYTES`; request size is configurable with `ASSISTIA_KNOWLEDGE_MAX_REQUEST_SIZE`).
+
+Original files are written outside the public web root, by default to `${user.home}/.assistia/knowledge-documents`; override with `ASSISTIA_KNOWLEDGE_STORAGE_DIRECTORY`. Stored keys are generated by the backend, filenames are reduced to a sanitized basename, storage writes use a temporary file and atomic move when supported, and POSIX permissions are restricted when available. `knowledge_document_versions` keeps each version's checksum and storage key; SHA-256 uniqueness rejects exact duplicates even if names differ or a later version has since been imported. No original file is stored in SQL Server and imported content is never executed or sent to Gemini.
+
+The ingestion sequence commits `PROCESSING` and source metadata, writes the original file, extracts/chunks outside a SQL transaction, then atomically persists the complete chunk set and `AWAITING_EMBEDDINGS`. A failed extraction or persistence attempt records `FAILED`; candidate chunks are inserted in a single transaction, so an incomplete candidate is never visible. `current_version` stays unchanged until a future embedding pipeline publishes the candidate. A retry of the same failed candidate reuses its version; otherwise the next version is chosen above both the published and attempted versions. Versions and chunks are never physically deleted; archive is logical (`archived_at`).
+
+Chunk sizing is configurable with `ASSISTIA_KNOWLEDGE_CHUNK_TARGET_TOKENS` (700) and `ASSISTIA_KNOWLEDGE_CHUNK_OVERLAP_TOKENS` (100). The minimum size is 40 estimated tokens, except when the whole source or an indivisible semantic block is shorter. The implementation uses a replaceable `TokenEstimator`, currently a documented coarse estimate of one token per four Unicode code points; it is not a tokenizer and may vary significantly for code, identifiers, and multilingual text. Chunking prefers paragraph, heading, list, and fenced-code boundaries; very long blocks fall back to line/word boundaries. PDF page boundaries are retained.
+
+| Method | Path | Access | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/api/knowledge-documents` | `TECHNICIAN`/`ADMIN` + CSRF | Multipart import (`file`, optional `documentId`, `title`, `category`); `documentId` starts a new version |
+| `GET` | `/api/knowledge-documents` | `TECHNICIAN`/`ADMIN` | List non-archived document metadata |
+| `GET` | `/api/knowledge-documents/{id}` | `TECHNICIAN`/`ADMIN` | Document metadata and lifecycle state |
+| `GET` | `/api/knowledge-documents/{id}/versions/{version}/chunks` | `TECHNICIAN`/`ADMIN` | Read chunks for the published or latest ready candidate version |
+| `POST` | `/api/knowledge-documents/{id}/archive` | `TECHNICIAN`/`ADMIN` + CSRF | Archive without physically deleting chunks or originals |
+
+The phase does not implement embeddings, physical cleanup/retention of stored originals, OCR, token-exact counts, version publication, vector access, similarity search, or RAG. Failed and superseded original files are retained privately; an explicit retention policy is still needed before automated cleanup.
+
+To run the SQL Server integration tests, start the isolated SQL Server 2025 candidate service and create a disposable database (never use the main AssistIA database):
+
+```sh
+set -a
+. ./.env.sqlserver2025
+set +a
+docker compose -f docker-compose.sqlserver2025.yml up -d --wait
+docker exec -it assistia-sqlserver-2025-candidate \
+  /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C \
+  -Q "IF DB_ID('AssistIAV6Test') IS NULL CREATE DATABASE AssistIAV6Test"
+cd backend
+ASSISTIA_SQLSERVER_V6_TESTS=true \
+ASSISTIA_SQLSERVER_V6_TEST_PASSWORD="$SPRING_DATASOURCE_PASSWORD" \
+mvn -q -Dtest=KnowledgeDocumentV6SqlServerTest test
+```
+
+`sqlcmd` prompts for the isolated server password. The test profile defaults to the candidate server at `localhost:1434` and uses `vectorTypeSupport=v2`.
+
+For a manual import, start the backend in one terminal against the isolated SQL Server 2025 instance and disposable database (for example, `AssistIAV6Test`):
+
+```sh
+set -a
+. ./.env.sqlserver2025
+set +a
+cd backend
+SPRING_PROFILES_ACTIVE=sqlserver2025 \
+SPRING_DATASOURCE_URL='jdbc:sqlserver://localhost:1434;databaseName=AssistIAV6Test;encrypt=true;trustServerCertificate=true;vectorTypeSupport=v2' \
+SPRING_DATASOURCE_USERNAME=sa \
+mvn spring-boot:run
+```
+
+In another terminal, with `curl` and `jq`, `umask 077`, log in as a provisioned technician/admin and refresh the CSRF token after authentication:
+
+```sh
+umask 077
+CSRF_TOKEN=$(curl -sS -c cookies.txt -b cookies.txt http://localhost:8080/api/auth/csrf | jq -r .token)
+read -r -s -p 'Mot de passe: ' ASSISTIA_PASSWORD
+printf '\n'
+LOGIN_BODY=$(jq -nc --arg email 'technician@example.test' --arg password "$ASSISTIA_PASSWORD" \
+  '{email:$email,password:$password}')
+curl -sS -c cookies.txt -b cookies.txt -H 'Content-Type: application/json' \
+  -H "X-XSRF-TOKEN: $CSRF_TOKEN" --data "$LOGIN_BODY" \
+  http://localhost:8080/api/auth/login
+unset ASSISTIA_PASSWORD LOGIN_BODY
+CSRF_TOKEN=$(curl -sS -c cookies.txt -b cookies.txt http://localhost:8080/api/auth/csrf | jq -r .token)
+curl -i -c cookies.txt -b cookies.txt -H "X-XSRF-TOKEN: $CSRF_TOKEN" \
+  -F 'file=@./guide.md' -F 'category=GENERAL' \
+  http://localhost:8080/api/knowledge-documents
+rm -f cookies.txt
+```
+
+Login rotates the CSRF token; the command retrieves the current token after login. Replace the sample account with a provisioned account. A successful response is `201 Created` with the document ID, version, checksum, and `AWAITING_EMBEDDINGS`. Listing the document and fetching its chunks use the `GET` endpoints above.
 
 ## Results of the compatibility run
 

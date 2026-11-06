@@ -103,6 +103,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/health", "/api/auth/login", "/api/auth/csrf").permitAll()
                         .requestMatchers("/api/auth/logout", "/api/auth/me").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/knowledge-documents/**").hasAnyRole("TECHNICIAN", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH,
                                 "/api/tickets/*/status",
                                 "/api/tickets/*/priority",

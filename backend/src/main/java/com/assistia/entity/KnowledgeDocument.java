@@ -57,8 +57,14 @@ public class KnowledgeDocument {
     @Column(name = "content_sha256", length = 64)
     private String contentSha256;
 
+    @Column(name = "storage_path", length = 512)
+    private String storagePath;
+
+    @Column(name = "archived_at")
+    private LocalDateTime archivedAt;
+
     @Column(name = "current_version", nullable = false)
-    private Integer currentVersion = 1;
+    private Integer currentVersion = 0;
 
     /** Version currently being prepared; currentVersion stays usable until promotion. */
     @Column(name = "indexing_version", nullable = false)
@@ -158,6 +164,10 @@ public class KnowledgeDocument {
     public void setFileSizeBytes(Long fileSizeBytes) { this.fileSizeBytes = fileSizeBytes; }
     public String getContentSha256() { return contentSha256; }
     public void setContentSha256(String contentSha256) { this.contentSha256 = contentSha256; }
+    public String getStoragePath() { return storagePath; }
+    public void setStoragePath(String storagePath) { this.storagePath = storagePath; }
+    public LocalDateTime getArchivedAt() { return archivedAt; }
+    public void setArchivedAt(LocalDateTime archivedAt) { this.archivedAt = archivedAt; }
     public Integer getCurrentVersion() { return currentVersion; }
     public void setCurrentVersion(Integer currentVersion) { this.currentVersion = currentVersion; }
     public Integer getIndexingVersion() { return indexingVersion; }
