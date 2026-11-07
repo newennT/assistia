@@ -96,7 +96,7 @@ class KnowledgeDocumentV6SqlServerTest {
         String marker = UUID.randomUUID().toString();
         KnowledgeDocument first = new KnowledgeDocument("Hash " + marker, "content",
                 KnowledgeDocumentCategory.GENERAL, null);
-        first.setContentSha256("a".repeat(64));
+        first.setContentSha256(UUID.randomUUID().toString().replace("-", "").repeat(2));
         first.setStoragePath("knowledge/private/" + marker + ".md");
         documents.saveAndFlush(first);
         assertThat(jdbc.queryForObject("SELECT storage_path FROM dbo.knowledge_documents WHERE id=?",
@@ -171,6 +171,22 @@ class KnowledgeDocumentV6SqlServerTest {
                 "WHERE document_id=? AND document_version=2", Integer.class, document.getId())).isEqualTo(3);
         assertThat(jdbc.queryForObject("SELECT embedding FROM dbo.knowledge_chunks " +
                 "WHERE document_id=? AND document_version=2", Object.class, document.getId())).isNull();
+    }
+
+    @Test
+    void archiveIsLogicalAndPreservesDocumentAndChunks() {
+        KnowledgeDocument document = documents.saveAndFlush(new KnowledgeDocument(
+                "Archive " + UUID.randomUUID(), "archived content", KnowledgeDocumentCategory.GENERAL, null));
+        KnowledgeChunk chunk = chunks.saveAndFlush(new KnowledgeChunk(document, 1, 0, "preserved chunk", 4));
+
+        lifecycle.archive(document.getId());
+
+        assertThat(jdbc.queryForObject("SELECT archived_at FROM dbo.knowledge_documents WHERE id=?",
+                java.time.LocalDateTime.class, document.getId())).isNotNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.knowledge_documents WHERE id=?",
+                Integer.class, document.getId())).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.knowledge_chunks WHERE id=?",
+                Integer.class, chunk.getId())).isEqualTo(1);
     }
 
     @Test
