@@ -200,7 +200,8 @@ public class KnowledgeDocumentLifecycleService {
         KnowledgeDocument document = findById(id);
         boolean available = version == document.getCurrentVersion()
                 || (version == document.getIndexingVersion()
-                && document.getIndexingStatus() == KnowledgeIndexingStatus.AWAITING_EMBEDDINGS);
+                && (document.getIndexingStatus() == KnowledgeIndexingStatus.AWAITING_EMBEDDINGS
+                || document.getIndexingStatus() == KnowledgeIndexingStatus.READY_TO_PUBLISH));
         if (!available) {
             throw new EntityNotFoundException("Version documentaire introuvable.");
         }

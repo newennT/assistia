@@ -37,9 +37,9 @@ class KnowledgeDocumentV6SqlServerTest {
     @Autowired KnowledgeDocumentLifecycleService lifecycle;
     @Autowired JdbcTemplate jdbc;
     @Test
-    void flywayV1ThroughV6AndJpaValidateAreActive() {
+    void flywayV1ThroughV7AndJpaValidateAreActive() {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM dbo.flyway_schema_history WHERE success = 1", Integer.class))
-                .isEqualTo(6);
+                .isEqualTo(7);
         String type = jdbc.queryForObject("SELECT TYPE_NAME(user_type_id) FROM sys.columns " +
                 "WHERE object_id = OBJECT_ID('dbo.knowledge_chunks') AND name = 'embedding'", String.class);
         assertThat(type).isEqualTo("vector");
